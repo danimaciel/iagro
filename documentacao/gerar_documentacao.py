@@ -224,6 +224,13 @@ for xlsx in sorted((RAIZ / "resultados").glob("iagro_avaliacao_*.xlsx")):
     ind = pd.read_excel(xlsx, sheet_name="Indicadores").fillna("")
     h2(f"6.2 Agente: {xlsx.stem.replace('iagro_avaliacao_', '')}")
     tabela(list(ind.columns), ind.values.tolist(), [3.0] + [13.0 / (len(ind.columns) - 1)] * (len(ind.columns) - 1))
+    if "qwen2.5_7b" in xlsx.stem:
+        p("Leitura das respostas (05/10/2026): nas 7 perguntas fora do tema o agente disse que não encontrou e não "
+          "inventou conteúdo. Pontos a corrigir: (1) na pergunta sobre queijo minas sugeriu um link do site da "
+          "Embrapa Gado de Leite que não veio da base (fere a regra 1); (2) na pergunta sobre custo de recuperação de "
+          "pastagem respondeu só \"não encontrei\", quando poderia indicar os trabalhos da Territorial sobre "
+          "pastagens degradadas (resposta parcial, regra 4). Tempo de 2 a 4 minutos por resposta no processador, "
+          "sem placa de vídeo.")
 
 # ---------------------------------------------------------------- 7
 h1("7. Estrutura de arquivos")
