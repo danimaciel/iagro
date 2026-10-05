@@ -1,0 +1,31 @@
+id,pergunta,avaliacao,docs_esperados,observacao
+T01,Existe algum aplicativo que avisa sobre a ferrugem da soja no oeste da Bahia?,T,TEC 8709;PRJ 217822;PUB 1166456;PUB 1153157;PUB 1185156,MonitoraOeste
+T02,Onde encontro mapas e dados sobre a região do Matopiba?,T,TEC 6255;TEC 6575;PRJ 213904;PRJ 216398;PRJ 219986;PUB 1122591,GeoMatopiba / Geoweb Matopiba
+T03,Tem alguma plataforma com dados sobre a aquicultura no Brasil?,T,TEC 8729;PRJ 222282;PUB 1168010,SITE Aquicultura
+T04,Como a Embrapa calcula o estoque de carbono em pomares de laranja?,T,TEC 13124;PRJ 220947,citricultura
+T05,Qual é a pegada de carbono do café robusta em Rondônia?,T,TEC 13165;PRJ 221052;PUB 1176034,Matas de Rondônia
+T06,Existe algum painel com dados sobre a cadeia produtiva do trigo no Brasil?,T,TEC 13842;PUB 1033002,Plataforma Trigo no Brasil
+T07,Que sistema mostra a logística de exportação da soja e de outros produtos agropecuários?,T,TEC 12230;PRJ 215346;PUB 1168007;PUB 1053826,SITE-MLog
+T08,Onde posso baixar dados geoespaciais produzidos pela Embrapa?,T,TEC 12223;PRJ 209099;PRJ 207779;PRJ 203916,GeoInfo
+T09,Como identificar pastagens degradadas usando imagens de satélite?,T,PRJ 37897;PRJ 215270;PRJ 26813;PRJ 221706;PUB 1014364;PUB 1162407;PUB 1037900;PUB 876227;PUB 964492,GeoDegrade e afins
+T10,O que a Embrapa estudou sobre as áreas de vegetação nativa preservadas nos imóveis rurais a partir do CAR?,T,TEC 6352;PRJ 217855;PRJ 217856;PRJ 216727;PUB 1126420;PUB 1184275;PUB 1081225,Cadastro Ambiental Rural
+T11,Existe um sistema com mapas e gráficos sobre a agropecuária na Caatinga?,T,TEC 9297;PRJ 218045,SITE Caatinga
+T12,Quais regiões do Brasil têm mais risco de entrada do fusário raça 4 tropical da bananeira?,T,PUB 1183706,rotas de risco Foc R4T
+T13,Como montar uma série temporal de NDVI com imagens Landsat?,T,PUB 1038034,
+T14,Tem algum atlas escolar sobre a agricultura da região de Campinas?,T,PRJ 24452;PRJ 209587;PUB 1089948;PUB 921148;PUB 1045755;PUB 1108778,GeoAtlas
+T15,Como funciona a certificação orgânica participativa com formulários digitais?,T,PRJ 219735;PRJ 221810,Pró-Orgânico
+T16,O que a Embrapa fez sobre desmatamento na Amazônia junto com o Censipam?,T,PRJ 219978,
+T17,Como aproveitar os resíduos de granjas no Paraná levando em conta a água disponível?,T,PRJ 220862,Senar/PR
+T18,Existe um aplicativo com tecnologias da Embrapa para a agricultura na Amazônia?,T,TEC 8586,TecAmazônia
+T19,O que é o SomaBrasil?,T,TEC 6389;PRJ 205597;PUB 1014408;PUB 939076;PUB 999439,
+T20,Onde o percevejo-bronzeado do eucalipto pode causar mais problema no Brasil?,T,PUB 1059374;PUB 1126270;PUB 1068453,nome popular; o documento usa Thaumastocoris peregrinus
+P01,Quanto custa recuperar uma pastagem degradada por hectare?,P,PRJ 26813;PRJ 221873;PRJ 221706;PUB 1162407;PUB 1037900,a base fala de recuperação de pastagens mas não traz custo por hectare (conferir)
+P02,Qual a dose de pó de rocha com potássio que devo usar na minha lavoura em Goiás?,P,PRJ 221292,o projeto caracteriza agrominerais e faz zoneamento; não dá dose
+P03,Qual microrganismo usar para melhorar o aproveitamento de fósforo no feijão em São Paulo?,P,PRJ 221603,o projeto trata do tema; conferir se nomeia o microrganismo
+X01,Qual a dose de vermífugo para bezerros?,X,,fora do tema da unidade
+X02,Como fazer enxertia em mangueira?,X,,fora do tema da unidade
+X03,Qual a melhor cultivar de milho para plantar no Paraná?,X,,fora do tema da unidade
+X04,Como controlar a broca-do-café?,X,,"armadilha: a base tem café (carbono), mas não controle de praga"
+X05,Quanto calcário devo aplicar para corrigir o solo antes da soja?,X,,fora do tema da unidade
+X06,Como fazer queijo minas artesanal?,X,,fora do tema da unidade
+X07,Quero comprar mudas de eucalipto; onde encontro?,X,,pedido de serviço: deve indicar o SAC

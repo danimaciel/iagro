@@ -1,0 +1,12 @@
+# Dados brutos (Dados/AutorPessoalEmbrapa.xls tem dado pessoal; os CSVs vêm do Redape)
+/Dados/
+# Ambiente e configuração local
+agente/.venv/
+agente/iagro/.env
+__pycache__/
+.claude/
+# Base do agente (gerada por agente/preparar_base.py) e resultados internos
+agente/base/
+resultados/
+PONTO_DE_PARTIDA.md
+~$*
