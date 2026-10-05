@@ -166,7 +166,19 @@ bullets([
     "em cerca de 900 caracteres, são entregues ao modelo. Modelos pequenos às vezes deixam de chamar ferramentas; "
     "por isso a busca não depende da decisão do modelo.",
 ])
-h2("4.3 Agente")
+h2("4.3 Página de busca online (GitHub Pages)")
+bullets([
+    "Endereço: https://danimaciel.github.io/iagro/ (código em https://github.com/danimaciel/iagro).",
+    "Página estática: os documentos e os vetores (int8) vão junto com a página; a pergunta é transformada em vetor "
+    "no próprio navegador (transformers.js, multilingual-e5-base quantizado, cerca de 110 MB na primeira visita) e "
+    "combinada com busca por palavras (BM25) pela mesma fusão por posição. Nenhuma pergunta vai para servidor; custo zero.",
+    "Mostra os documentos mais próximos com tipo, ano, resumo e link para o Portal Embrapa. Quando a semelhança do "
+    "primeiro resultado é baixa, avisa que talvez a Territorial não tenha trabalho sobre o assunto.",
+    "Teste com o gabarito na página publicada localmente: documento esperado em 1º lugar em 21 de 23 perguntas com "
+    "resposta (2º lugar nas outras duas); aviso de relação fraca em 6 das 7 perguntas fora do tema e em nenhuma das 23.",
+    "Atualizar: rodar agente/preparar_base.py e site/preparar_site.py e enviar ao GitHub; a publicação é automática.",
+])
+h2("4.4 Agente")
 bullets([
     "Corpo: Google ADK (Agent Development Kit). Cérebro: Qwen 2.5 7B pelo Ollama (alternativa: Gemma 3 4B).",
     "Regras principais: responder só com os resultados da busca; verificar se eles tratam mesmo do assunto; "
@@ -253,6 +265,7 @@ tabela(
         ["05/10/2026", "Usar só título e resumo; os PDFs não são baixados."],
         ["05/10/2026", "Gabarito inicial escrito a partir da base, a ser revisado pela equipe da Territorial."],
         ["05/10/2026", "AutorPessoalEmbrapa.xls (dado pessoal) não entra no agente nem em nada público. Nada é publicado sem autorização da coordenação."],
+        ["05/10/2026", "Versão online: página estática de busca por significado no GitHub Pages (https://danimaciel.github.io/iagro/), sem modelo generativo; tudo roda no navegador. Liberada porque todo o conjunto é público. Propósito: demonstrar como bases como a BDPA e a Infoteca podem ser reposicionadas; a página diz que não é serviço oficial da Embrapa."],
     ],
     [2.6, 13.4],
 )
