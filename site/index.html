@@ -111,6 +111,13 @@ h2{font:650 clamp(24px,3.4vw,32px)/1.15 Fraunces,Georgia,serif;margin:0 0 8px}
 .linha h4{margin:0 0 4px;font-size:16px}
 .linha small{color:var(--muted)}
 .linha svg{width:100%;height:150px;display:block;margin-top:10px}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;max-width:760px}
+.filtros select{font:inherit;font-size:14px;border-radius:10px;border:1px solid #ffffff44;background:#ffffff14;color:var(--hero-ink);padding:8px 10px;flex:1 1 200px;max-width:280px}
+.filtros select option,.filtros select optgroup{color:#17251d}
+.etiquetas{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px}
+.etq{font-size:12px;border-radius:99px;padding:2px 8px;background:var(--bg);border:1px solid var(--line);color:var(--ink);cursor:pointer}
+.etq.prod{border-color:#3f9a5c66} .etq.uf{border-color:#2f6f9f55} .etq.bio{border-color:#c8892a66}
+@media (max-width:720px){ .filtros select{max-width:none} }
 footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 40px;font-size:13.5px;color:var(--muted)}
 footer p{margin:0 0 6px;max-width:80ch}
 @media (max-width:720px){
@@ -148,6 +155,10 @@ dialog .fechar{font:600 14px Inter,sans-serif;border:0;border-radius:8px;backgro
       <input id="q" type="search" autocomplete="off" placeholder="Ex.: onde o percevejo do eucalipto pode causar mais problema?" aria-label="Sua pergunta">
       <button type="submit">Buscar</button>
     </form>
+    <div class="filtros" id="filtros" hidden>
+      <select id="fProduto" aria-label="Produto"><option value="">Todos os produtos</option></select>
+      <select id="fEstado" aria-label="Estado"><option value="">Todos os estados</option></select>
+    </div>
     <div class="exemplos" id="exemplos"><span>Experimente:</span></div>
     <div class="estado carregando" id="estado"><span class="ponto"></span><span id="estadoTxt">Carregando a base…</span></div>
     <div class="numeros" id="numeros"></div>
@@ -278,14 +289,36 @@ async function semantica(q) {
   return s;
 }
 
+/* ---------- produtos e localização (do Observatório de Pesquisa da Embrapa) */
+let fP = "", fE = "";
+const passa = d => (!fP || (d.pp || []).includes(fP)) && (!fE || (d.uf || []).includes(fE));
+const nomeProd = id => R.produtos?.[id]?.nome || id;
+function etiquetas(d) {
+  const pr = (d.pp || []).slice(0, 3).map(id => `<span class="etq prod" data-fp="${esc(id)}" title="Filtrar por ${esc(nomeProd(id))}">${esc(nomeProd(id))}</span>`);
+  const uf = (d.uf || []).slice(0, 5).map(u => `<span class="etq uf" data-fe="${u}" title="Filtrar por ${u}">${u}</span>`);
+  const bi = (d.bi || []).slice(0, 2).map(b => `<span class="etq bio">${esc(b)}</span>`);
+  const t = [...pr, ...uf, ...bi];
+  return t.length ? `<div class="etiquetas">${t.join("")}</div>` : "";
+}
+function aplicarFiltro(qual, valor) {
+  if (qual === "p") { fP = valor; $("fProduto").value = valor; } else { fE = valor; $("fEstado").value = valor; }
+  buscar($("q").value);
+}
+
 async function buscar(q) {
-  q = q.trim(); if (!q) return;
+  q = (q || "").trim(); if (!q && !fP && !fE) return;
   ultima = q;
-  history.replaceState(null, "", "#q=" + encodeURIComponent(q));
+  const par = new URLSearchParams(); if (q) par.set("q", q); if (fP) par.set("p", fP); if (fE) par.set("e", fE);
+  history.replaceState(null, "", "#" + par.toString());
+  if (!q) {  // explorar: só filtros, mais recentes primeiro
+    ranking = DOCS.map((d, i) => ({i, sem: null})).filter(r => passa(DOCS[r.i]))
+      .sort((a, b) => (+DOCS[b.i].a || 0) - (+DOCS[a.i].a || 0)).slice(0, 50);
+    mostrar(); return;
+  }
   const sb = bm25(q), se = await semantica(q);
   const pb = posicoes(sb), pe = se ? posicoes(se) : null, temPalavra = sb.some(x => x > 0);
   ranking = DOCS.map((d, i) => ({i, rrf: (temPalavra ? 1 / (60 + pb[i]) : 0) + (pe ? 1 / (60 + pe[i]) : 0), sem: se ? se[i] : null, bm: sb[i]}))
-    .filter(r => r.rrf > 0 && (pe || r.bm > 0))
+    .filter(r => r.rrf > 0 && (pe || r.bm > 0) && passa(DOCS[r.i]))
     .sort((a, b) => b.rrf - a.rrf)
     .slice(0, 50);
   mostrar();
@@ -316,7 +349,8 @@ function mostrar() {
     aviso.hidden = false;
     aviso.innerHTML = "<b>Relação fraca.</b> Os documentos abaixo são os mais próximos, mas talvez a Embrapa Territorial não tenha trabalho sobre esse assunto. Para outros temas, use a <a href='https://www.embrapa.br/busca-de-publicacoes' target='_blank' rel='noopener'>busca de publicações da Embrapa</a>.";
   } else aviso.hidden = true;
-  $("info").textContent = extrator ? "Os 50 mais próximos, por significado e palavras" : "Busca por palavras (a busca por significado ainda está carregando)";
+  const filtrosTxt = [fP && nomeProd(fP), fE].filter(Boolean).join(" · ");
+  $("info").textContent = (!ultima ? "Documentos com os filtros, mais recentes primeiro" : extrator ? "Os 50 mais próximos, por significado e palavras" : "Busca por palavras (a busca por significado ainda está carregando)") + (filtrosTxt ? ` · ${filtrosTxt}` : "");
   if (!lista.length) { $("lista").innerHTML = `<p class="vazio">Nada encontrado com essas palavras. Tente descrever de outro jeito.</p>`; return; }
   $("lista").innerHTML = lista.map(r => {
     const d = DOCS[r.i], t = d.c.slice(0, 3), id = d.c.slice(4);
@@ -328,6 +362,7 @@ function mostrar() {
       <div class="meta"><span class="tipo">${TIPOS[t]}</span><span>${esc(d.a || "ano não informado")}</span>${extra}
         ${p != null ? `<span class="prox" title="Proximidade de significado com a sua pergunta">proximidade <i style="--p:${Math.round(p * 100)}%"></i></span>` : ""}</div>
       <h3><a href="${esc(d.l)}" target="_blank" rel="noopener">${destacar(d.t, ultima)}</a></h3>
+      ${etiquetas(d)}
       <p data-curto="${esc(curto)}" data-longo="${esc(resumo)}">${destacar(curto, ultima)}</p>
       ${resumo.length > curto.length ? `<button class="mais" data-i="${r.i}">Ler resumo completo</button>` : ""}
       <div class="rodape">
@@ -341,6 +376,13 @@ function mostrar() {
 }
 
 $("form").addEventListener("submit", e => { e.preventDefault(); buscar($("q").value); });
+$("fProduto").addEventListener("change", e => aplicarFiltro("p", e.target.value));
+$("fEstado").addEventListener("change", e => aplicarFiltro("e", e.target.value));
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-fp],[data-fe]"); if (!t) return;
+  if (t.dataset.fp !== undefined) aplicarFiltro("p", t.dataset.fp); else aplicarFiltro("e", t.dataset.fe);
+  $("resultados").scrollIntoView({behavior: "smooth"});
+});
 $("abas").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; filtro = b.dataset.f; mostrar(); });
 $("lista").addEventListener("click", e => {
   const b = e.target.closest(".mais"); if (!b) return;
@@ -381,8 +423,20 @@ async function iniciar() {
   $("linhaLegenda").textContent = `${fmt(res.publicacoes)} publicações, de ${res.ano_min} a ${res.ano_max}. Inclui o período como Embrapa Monitoramento por Satélite.`;
   grafico(res.por_ano);
   estado("Busca por palavras pronta. Preparando a busca por significado (cerca de 110 MB, só na primeira visita)…", "carregando");
-  const q0 = decodeURIComponent((location.hash.match(/q=([^&]+)/) || [])[1] || "");
-  if (q0) { $("q").value = q0; buscar(q0); }
+  if (res.produtos && Object.keys(res.produtos).length) {
+    const cont = new Map(), contUf = new Map();
+    DOCS.forEach(d => { (d.pp || []).forEach(x => cont.set(x, (cont.get(x) || 0) + 1)); (d.uf || []).forEach(x => contUf.set(x, (contUf.get(x) || 0) + 1)); });
+    const cats = {}; Object.entries(res.produtos).forEach(([id, p]) => (cats[p.cat] ||= []).push([id, p]));
+    $("fProduto").insertAdjacentHTML("beforeend", Object.entries(cats).sort((a, b) => a[0].localeCompare(b[0], "pt-BR")).map(([c, ps]) =>
+      `<optgroup label="${esc(c)}">${ps.sort((a, b) => (cont.get(b[0]) || 0) - (cont.get(a[0]) || 0)).map(([id, p]) => `<option value="${esc(id)}">${esc(p.nome)} (${cont.get(id) || 0})</option>`).join("")}</optgroup>`).join(""));
+    $("fEstado").insertAdjacentHTML("beforeend", [...contUf.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([u, n]) => `<option value="${u}">${u} (${n})</option>`).join(""));
+    $("filtros").hidden = false;
+  }
+  const h = new URLSearchParams(location.hash.slice(1)), q0 = h.get("q") || "";
+  if (h.get("p")) { fP = h.get("p"); $("fProduto").value = fP; }
+  if (h.get("e")) { fE = h.get("e"); $("fEstado").value = fE; }
+  if (q0) $("q").value = q0;
+  if (q0 || fP || fE) buscar(q0);
   try {
     const {pipeline, env} = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1");
     env.allowLocalModels = false;
