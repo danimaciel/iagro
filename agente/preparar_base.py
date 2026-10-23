@@ -8,7 +8,7 @@ Usa só título + resumo/descrição (decisão de 05/10/2026). Dados/AutorPessoa
 
 Uso:  python agente/preparar_base.py                      (piloto: Embrapa Territorial)
       python agente/preparar_base.py --unidade "Embrapa Solos"
-      python agente/preparar_base.py --mes 2026-10         (outra exportação)
+      python agente/preparar_base.py --mes 2026-11         (outra exportação)
 No processador leva cerca de 10 minutos para a Territorial (cerca de 3 documentos por segundo).
 """
 import argparse
@@ -27,7 +27,7 @@ BASE.mkdir(exist_ok=True)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--unidade", default="Embrapa Territorial")
-ap.add_argument("--mes", default="2026-09")
+ap.add_argument("--mes", default="2026-10")
 args = ap.parse_args()
 
 
@@ -73,6 +73,7 @@ tipos = pd.Series([i["tipo_doc"] for i in itens]).value_counts()
 print(args.unidade, "|", len(itens), "documentos |", tipos.to_dict())
 print("sem resumo/descrição:", sum(not i["texto"] for i in itens))
 (BASE / "documentos.json").write_text(json.dumps(itens, ensure_ascii=False, indent=1), encoding="utf-8")
+(BASE / "meta.json").write_text(json.dumps({"unidade": args.unidade, "mes": args.mes}, ensure_ascii=False), encoding="utf-8")
 
 from sentence_transformers import SentenceTransformer
 

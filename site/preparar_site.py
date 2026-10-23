@@ -72,9 +72,14 @@ q.tofile(SAIDA / "vetores.bin")
 
 anos = [int(i["ano"]) for i in itens if i["codigo"].startswith("PUB") and str(i["ano"]).isdigit()]
 por_ano = {a: anos.count(a) for a in range(min(anos), max(anos) + 1)}
+# mês da exportação e unidade gravados por agente/preparar_base.py
+META = json.loads((RAIZ / "agente" / "base" / "meta.json").read_text(encoding="utf-8"))
+MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
+         "novembro", "dezembro"]
+ano, mes = META["mes"].split("-")
 resumo = {
-    "unidade": "Embrapa Territorial",
-    "exportacao": "setembro de 2026",
+    "unidade": META["unidade"],
+    "exportacao": f"{MESES[int(mes) - 1]} de {ano}",
     "dim": int(E.shape[1]), "n": len(itens), "escala": escala,
     "publicacoes": sum(i["codigo"].startswith("PUB") for i in itens),
     "solucoes": sum(i["codigo"].startswith("TEC") for i in itens),
