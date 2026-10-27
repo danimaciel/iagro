@@ -158,6 +158,8 @@ h1 em .i { color: #d6a675 }
 .unidade h3 { margin: 0; font-size: 15px; font-weight: 600; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline }
 .unidade h3 .selo-t { font-family: var(--mono); font-size: 10.5px; font-weight: 400 }
 .unidade .num { font-family: var(--mono); font-size: 11.5px; color: var(--muted) }
+.unidade .ver { font-size: 13px; justify-self: start }
+#filtro .kws { display: block; margin-top: 4px; font-size: 13px; overflow-wrap: anywhere }
 .unidade .barra { height: 4px; border-radius: 2px; background: var(--accent); opacity: .7 }
 .ver-pessoas { grid-column: 1 / -1 }
 .ver-pessoas summary { cursor: pointer; color: var(--muted); font-size: 13.5px; padding: 4px 0 }
@@ -581,6 +583,11 @@ function itensRede(tipo) {
 // todos os documentos do produto (e tema) na busca do iAgro Embrapa, que filtra pelo mesmo enriquecimento
 const IAGRO_EMBRAPA = "https://danimaciel.github.io/iagro-embrapa/";
 const linkTodos = (p, t) => IAGRO_EMBRAPA + "#p=" + encodeURIComponent(p) + (t ? "&t=" + encodeURIComponent(t) : "");
+const linkPalavra = (p, t, w) => IAGRO_EMBRAPA + "#q=" + encodeURIComponent(w) + "&p=" + encodeURIComponent(p) + (t ? "&t=" + encodeURIComponent(t) : "");
+// trabalhos de uma unidade: com um produto, filtra por ele (e pelo tema); com vários, busca pelos nomes
+const linkUnidade = (nome, alvo, t) => IAGRO_EMBRAPA + "#u=" + encodeURIComponent(nome) + (alvo.length === 1
+  ? "&p=" + encodeURIComponent(alvo[0]) + (t ? "&t=" + encodeURIComponent(t) : "")
+  : alvo.length ? "&q=" + encodeURIComponent(alvo.filter(p => PROD[p]).map(p => PROD[p][0]).join(" ")) : "");
 const totalPar = (p, t) => ((REDE.pt[p] || []).find(x => x[0] === t) || [, 0])[1];
 function itensVisiveis() {
   if (aba === "SALVOS") return S.salvos.map(c => POR_CODIGO.get(c) || docRede(c)).filter(Boolean).map(d => todos.get(d.i) || { d, why: [], s: 0 });
@@ -603,7 +610,7 @@ function desenharKit() {
   $("abas").innerHTML = abas.map(([id, nome, n]) => `<button type="button" class="aba" role="tab" data-id="${id}" aria-selected="${id === aba}">${nome}<b>${n}</b></button>`).join("");
   if (filtro && filtro.k === "rede") {
     $("filtro").hidden = false;
-    $("filtro").innerHTML = `<span>${filtro.t ? `<strong>${esc(temaNome(filtro.t))}</strong> em ` : ""}<strong>${esc(PROD[filtro.p][0])}</strong>: primeiro o que é da Embrapa Territorial, depois exemplos de toda a Embrapa. <a href="${linkTodos(filtro.p, filtro.t)}" target="_blank" rel="noopener">Ver ${filtro.t ? `todos os ${totalPar(filtro.p, filtro.t).toLocaleString("pt-BR")}` : "todos"} no iAgro Embrapa</a></span> <button type="button" id="limpar">${prodsAtivos.includes(filtro.p) ? "voltar ao kit" : "limpar"}</button>`;
+    $("filtro").innerHTML = `<span>${filtro.t ? `<strong>${esc(temaNome(filtro.t))}</strong> em ` : ""}<strong>${esc(PROD[filtro.p][0])}</strong>: primeiro o que é da Embrapa Territorial, depois exemplos de toda a Embrapa. <a href="${linkTodos(filtro.p, filtro.t)}" target="_blank" rel="noopener">Ver ${filtro.t ? `todos os ${totalPar(filtro.p, filtro.t).toLocaleString("pt-BR")}` : "todos"} no iAgro Embrapa</a>${palavrasFiltro()}</span> <button type="button" id="limpar">${prodsAtivos.includes(filtro.p) ? "voltar ao kit" : "limpar"}</button>`;
     $("limpar").onclick = () => { filtro = filtro.t && !prodsAtivos.includes(filtro.p) ? { ...filtro, t: null } : null; desenharKit(); desenharTela(); };
   } else if (filtro) { $("filtro").hidden = false; $("filtro").innerHTML = `Todo o acervo de <strong>${esc(filtro.k === "cat" ? filtro.v : PROD[filtro.v][0])}</strong>, do mais próximo do seu perfil ao mais distante <button type="button" id="limpar">limpar</button>`; $("limpar").onclick = () => { filtro = null; desenharKit(); desenharTela(); }; }
   else $("filtro").hidden = true;
@@ -628,6 +635,11 @@ function desenharKit() {
     </article>`;
   }).join("");
 }
+function palavrasFiltro() {
+  const x = filtro.t && (REDE.pt[filtro.p] || []).find(y => y[0] === filtro.t);
+  if (!x || !x[3].length) return "";
+  return `<span class="kws">Buscar por: ${x[3].map(([w]) => `<a href="${linkPalavra(filtro.p, filtro.t, w)}" target="_blank" rel="noopener" data-palavra="${esc(w)}">${esc(w)}</a>`).join(" · ")}</span>`;
+}
 const filtroTexto = () => !filtro ? "" : filtro.k === "rede" ? filtro.p + (filtro.t ? ":" + filtro.t : "") : filtro.v;
 /* ---------- quem trabalha com isso: primeiro as unidades, depois (recolhidas) as pessoas ---------- */
 function desenharUnidades(alvo, tema) {
@@ -648,7 +660,8 @@ function desenharUnidades(alvo, tema) {
     partes.push(`${x.rec} nos últimos 10 anos`);
     return `<article class="unidade"><h3>${esc(x.nome)}${x.id === "territorial" ? '<span class="selo-t">piloto</span>' : ""}</h3>
       <div class="barra" style="width:${Math.max(6, Math.round(100 * x.n / max))}%"></div>
-      <div class="num">${partes.join(" · ")}</div></article>`;
+      <div class="num">${partes.join(" · ")}</div>
+      <a class="ver" href="${linkUnidade(x.nome, alvo, tema)}" target="_blank" rel="noopener" data-unidade="${esc(x.id)}">Ver os trabalhos desta unidade</a></article>`;
   }).join("");
   return ord.length;
 }
@@ -706,7 +719,8 @@ $("pessoas").onclick = e => {
   const card = a.closest(".pessoa"), pos = [...$("pessoas").querySelectorAll(".pessoa")].indexOf(card) + 1;
   registrar("abrir", { c: a.dataset.u, pos, aba: "PESSOAS", filtro: filtroTexto() });
 };
-$("filtro").addEventListener("click", e => { if (e.target.closest("a")) registrar("todos", { filtro: filtroTexto() }); });
+$("unidades").addEventListener("click", e => { const a = e.target.closest("a[data-unidade]"); if (a) registrar("unidade", { filtro: filtroTexto(), unidade: a.dataset.unidade }); });
+$("filtro").addEventListener("click", e => { const a = e.target.closest("a"); if (a) registrar(a.dataset.palavra ? "palavra" : "todos", { filtro: filtroTexto(), ...(a.dataset.palavra ? { palavra: a.dataset.palavra } : {}) }); });
 $("abas").onclick = e => { const b = e.target.closest(".aba"); if (!b) return; aba = b.dataset.id; desenharKit(); desenharTela(); };
 $("lista").onclick = e => {
   const a = e.target.closest("h3 a");
@@ -803,6 +817,8 @@ function rotulo(txt, x, y, al, fonte, cor, bg, alfa = 1) {
   if (esq < 6) x += 6 - esq; else if (esq + w > W - 6) x -= esq + w - (W - 6);
   ctx.lineWidth = 4; ctx.strokeStyle = bg; ctx.strokeText(txt, x, y); ctx.fillStyle = cor; ctx.fillText(txt, x, y);
   ctx.globalAlpha = 1;
+  const x0 = al === "left" ? x : al === "right" ? x - w : x - w / 2;
+  return [x0, x0 + w];
 }
 function curvas(cx, cy, R) {
   ctx.lineWidth = 1; ctx.strokeStyle = css("--line");
@@ -840,6 +856,7 @@ function desenharProd(agora) {
   ctx.setLineDash([]); ctx.globalAlpha = 1;
   // palavras-chave do tema escolhido (ou do que está sob o mouse), em leque para fora
   const ativo = G.nos.find(n => n.tipo === "tema" && (hover === n || (!hover || hover.tipo !== "tema") && n.id === tsel));
+  G.kws = [];
   if (ativo && ativo.dado[3].length && k === 1) {
     const kws = ativo.dado[3].slice(0, 8), kmax = Math.max(...kws.map(w => w[1]));
     kws.forEach(([w, n], j) => {
@@ -847,8 +864,10 @@ function desenharProd(agora) {
       ctx.beginPath(); ctx.moveTo(ativo.x, ativo.y); ctx.lineTo(x, y); ctx.strokeStyle = ativo.cor; ctx.globalAlpha = 0.45; ctx.lineWidth = 1; ctx.stroke();
       ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(x, y, 2 + 2.5 * n / kmax, 0, Math.PI * 2); ctx.fillStyle = ativo.cor; ctx.fill();
       ctx.textBaseline = "middle";
-      const c = Math.cos(a);
-      rotulo(w, x + (c > 0.2 ? 7 : c < -0.2 ? -7 : 0), y + (Math.abs(c) <= 0.2 ? Math.sign(Math.sin(a)) * 10 : 0), c > 0.2 ? "left" : c < -0.2 ? "right" : "center", `italic 400 12px ${css("--serif")}`, fg, bg);
+      const c = Math.cos(a), ly = y + (Math.abs(c) <= 0.2 ? Math.sign(Math.sin(a)) * 10 : 0), sob = hover && hover.kw === w;
+      const [x0, x1] = rotulo(w, x + (c > 0.2 ? 7 : c < -0.2 ? -7 : 0), ly, c > 0.2 ? "left" : c < -0.2 ? "right" : "center", `italic ${sob ? 600 : 400} 12px ${css("--serif")}`, fg, bg);
+      // só as do tema escolhido viram link (as do tema sob o mouse somem quando o mouse sai dele)
+      if (ativo.id === tsel) G.kws.push({ tipo: "kw", kw: w, t: tsel, x0: Math.min(x0, x) - 4, x1: Math.max(x1, x) + 4, y0: Math.min(y, ly) - 9, y1: Math.max(y, ly) + 9 });
     });
   }
   // nós
@@ -958,18 +977,20 @@ function desenharTela(agora = performance.now()) {
   if (k < 1) requestAnimationFrame(desenharTela);
 }
 function noEm(x, y) {
+  if (G.modo === "prod") { const kw = (G.kws || []).find(b => x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1); if (kw) return kw; }
   let melhor = null, dist = 14;
   for (const n of G.nos) { if (n.tipo === "eu") continue; const d = Math.hypot(n.x - x, n.y - y) - n.r; if (d < dist) { dist = d; melhor = n; } }
   return melhor;
 }
 tela.addEventListener("pointermove", e => {
   const r = tela.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, n = noEm(x, y);
-  if (n !== hover) { hover = n; desenharTela(); }
+  if (n !== hover && !(n && hover && n.kw && n.kw === hover.kw)) { hover = n; desenharTela(); }
   const dica = $("dica");
   if (!n) { dica.hidden = true; tela.style.cursor = "default"; return; }
   tela.style.cursor = "pointer";
   const pt = n.tipo === "tema" ? n.dado : null;
-  dica.innerHTML = n.tipo === "centro" ? `<strong>${esc(PROD[n.id][0])}</strong><br>clique para ver tudo no kit`
+  dica.innerHTML = n.tipo === "kw" ? `<strong>${esc(n.kw)}</strong><br>buscar no iAgro Embrapa, em ${esc(PROD[focoProd][0])}, tema “${esc(temaNome(n.t))}”`
+    : n.tipo === "centro" ? `<strong>${esc(PROD[n.id][0])}</strong><br>clique para ver tudo no kit`
     : pt ? `<strong>${esc(temaNome(pt[0]))}</strong><br>${pt[1].toLocaleString("pt-BR")} documentos sobre ${esc(PROD[focoProd][0])} na Embrapa${pt[5].length ? ` · ${pt[5].length} da Territorial` : ""}${pt[3].length ? `<br><em>${esc(pt[3].slice(0, 5).map(w => w[0]).join(", "))}</em>` : ""}<br>clique para ver no kit`
     : n.tipo === "viz" ? `<strong>${esc(PROD[n.id][0])}</strong><br>${n.n} documentos em comum com ${esc(PROD[focoProd][0])} · clique para ir`
     : n.tipo === "cat" ? `<strong>${esc(n.id)}</strong><br>${Object.keys(PROD).filter(p => PROD[p][1] === n.id).reduce((s, p) => s + (contagem[p] || 0), 0)} documentos no acervo · clique para filtrar`
@@ -986,6 +1007,7 @@ tela.addEventListener("click", e => {
   if (G.modo === "prod") {
     if (!n) return;
     if (n.tipo === "viz") { irPara(n.id, true); return; }
+    if (n.tipo === "kw") { registrar("palavra", { filtro: filtroTexto(), palavra: n.kw }); window.open(linkPalavra(focoProd, n.t, n.kw), "_blank", "noopener"); return; }
     const t = n.tipo === "tema" ? n.id : null, p = focoProd;
     const igual = filtro && filtro.k === "rede" && filtro.p === p && filtro.t === t;
     filtro = !igual ? { k: "rede", p, t } : prodsAtivos.includes(p) ? null : { k: "rede", p, t: null };
