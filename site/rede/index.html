@@ -606,6 +606,7 @@ function desenharKit() {
     $("limpar").onclick = () => { filtro = filtro.t && !prodsAtivos.includes(filtro.p) ? { ...filtro, t: null } : null; desenharKit(); desenharTela(); };
   } else if (filtro) { $("filtro").hidden = false; $("filtro").innerHTML = `Todo o acervo de <strong>${esc(filtro.k === "cat" ? filtro.v : PROD[filtro.v][0])}</strong>, do mais próximo do seu perfil ao mais distante <button type="button" id="limpar">limpar</button>`; $("limpar").onclick = () => { filtro = null; desenharKit(); desenharTela(); }; }
   else $("filtro").hidden = true;
+  guardarEndereco();
   const lista = visiveis = itensVisiveis();
   if (!lista.length) {
     $("lista").innerHTML = `<p class="vazio" style="padding:16px 0">${aba === "SALVOS" ? "Nada salvo ainda. Use ☆ salvar em qualquer item do kit." : "Nenhum item com este filtro. Limpe o filtro ou ajuste o perfil."}</p>`;
@@ -1033,7 +1034,30 @@ new MutationObserver(() => desenharTela()).observe(document.documentElement, { a
 if (registroAtivo()) $("avisoRegistro").hidden = false;
 $("semRegistro").onclick = () => { semRegistro = true; try { localStorage.setItem("redeiagro-sem-registro", "1"); } catch (e) {}
   $("avisoRegistro").textContent = "Pronto: o seu uso não será registrado neste navegador."; };
+/* ---------- endereço com produto e tema: …/rede/#p=soja&t=T041 abre a rede já nesse ponto ----------
+   p = código do produto (ou o nome, sem acento), t = código do tema; os dois vêm de ../dados/rede.json.
+   Serve para outras páginas (mapas de eventos, portais) apontarem "o que a Embrapa publicou sobre isto". */
+function lerEndereco() {
+  if (!REDE) return false;
+  const h = new URLSearchParams(location.hash.slice(1));
+  let p = h.get("p"), t = h.get("t");
+  if (p && !PROD[p]) { const n = norm(p).trim(); p = Object.keys(PROD).find(id => norm(PROD[id][0]) === n) || null; }
+  if (!p || !temRede(p)) return false;
+  if (t && !REDE.pt[p].some(x => x[0] === t)) t = null;
+  focoProd = p; hist = []; visaoGeral = false; filtro = { k: "rede", p, t };
+  let origem = ""; try { origem = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+  registrar("link", { produto: p, tema: t || "", origem });
+  return true;
+}
+// o endereço acompanha o produto e o tema escolhidos, para copiar e compartilhar
+function guardarEndereco() {
+  const novo = filtro && filtro.k === "rede" ? `#p=${filtro.p}${filtro.t ? "&t=" + filtro.t : ""}` : "";
+  if (novo !== location.hash) history.replaceState(null, "", location.pathname + location.search + novo);
+}
+const veioPorLink = lerEndereco();
+window.addEventListener("hashchange", () => { if (lerEndereco()) { atualizar(); $("tMapa").scrollIntoView({ behavior: reduzir ? "auto" : "smooth" }); } });
 carregarLente();
+if (veioPorLink && matchMedia("(max-width: 760px)").matches) $("tMapa").scrollIntoView();
 };
 </script>
 <script>
