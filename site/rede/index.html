@@ -805,7 +805,7 @@ function desenharProd(agora) {
   if (ativo && ativo.dado[3].length && k === 1) {
     const kws = ativo.dado[3].slice(0, 8), kmax = Math.max(...kws.map(w => w[1]));
     kws.forEach(([w, n], j) => {
-      const a = ativo.a + (j - (kws.length - 1) / 2) * 0.16, [x, y] = G.em(a, 0.7 + (j % 2) * 0.1);
+      const a = ativo.a + (j - (kws.length - 1) / 2) * 0.24, [x, y] = G.em(a, 0.7 + (j % 2) * 0.13);
       ctx.beginPath(); ctx.moveTo(ativo.x, ativo.y); ctx.lineTo(x, y); ctx.strokeStyle = ativo.cor; ctx.globalAlpha = 0.45; ctx.lineWidth = 1; ctx.stroke();
       ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(x, y, 2 + 2.5 * n / kmax, 0, Math.PI * 2); ctx.fillStyle = ativo.cor; ctx.fill();
       ctx.textBaseline = "middle";
