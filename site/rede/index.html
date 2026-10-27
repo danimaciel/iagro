@@ -143,6 +143,7 @@ h1 em .i { color: #d6a675 }
 .pessoa li a { color: var(--fg); text-decoration-color: var(--line); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
 .pessoa li a:hover { text-decoration-color: var(--accent) }
 .pessoa li .ano { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-right: 6px }
+.sub-rede { grid-column: 1 / -1; margin: 8px 0 0; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400 }
 .rede-nota { grid-column: 1 / -1 }
 .rede-nota a { color: inherit }
 .selo { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; border: 1px dashed var(--muted); border-radius: 999px; padding: 6px 12px; color: var(--muted); white-space: nowrap }
@@ -489,7 +490,9 @@ function desenharPessoas() {
     for (const u of ev) if (!x.ev.includes(u)) x.ev.push(u);
     soma.set(id, x);
   }
-  const lista = [...soma.values()].sort((a, b) => b.peso - a.peso).slice(0, 9);
+  const ord = [...soma.values()].sort((a, b) => b.peso - a.peso);
+  // as de maior peso em toda a Embrapa e, à parte, as da unidade do piloto que não entraram
+  const lista = ord.slice(0, 6), daUnidade = ord.filter(x => PESS.p[x.id][4] && !lista.includes(x)).slice(0, 3);
   const temDados = lista.length > 0;
   $("pessoas").hidden = $("redeNota").hidden = !temDados;
   $("redeSelo").hidden = true;
@@ -498,24 +501,27 @@ function desenharPessoas() {
     ? `Pessoas da Embrapa que assinam publicações, projetos e soluções sobre ${nomes.length > 3 ? nomes.slice(0, 3).join(", ") + " e outros" : nomes.join(", ").replace(/, ([^,]*)$/, " e $1")}, das que mais trabalham com o tema para as demais.`
     : alvo.length ? "Ainda não há pessoas listadas para os produtos do seu perfil." : "Descreva o seu trabalho com uma cadeia (café, soja, gado...) para ver quem trabalha com ela na Embrapa.";
   if (!temDados) { $("pessoas").innerHTML = ""; return; }
-  $("pessoas").innerHTML = lista.map(x => {
+  const cartao = x => {
     const [nome, uni, , ultimo] = PESS.p[x.id];
     const partes = [`${x.n} ${x.n === 1 ? "trabalho" : "trabalhos"} no tema`];
     if (x.lid) partes.push(`lidera ${x.lid} ${x.lid === 1 ? "projeto" : "projetos"}`);
     if (x.tec) partes.push(`${x.tec} ${x.tec === 1 ? "solução" : "soluções"}`);
     partes.push(`último em ${ultimo}`);
-    const ev = x.ev.filter(u => PESS.ev[u]).slice(0, 3).map(u => [u, ...PESS.ev[u]]);
+    const vistos = new Set(), ev = x.ev.filter(u => PESS.ev[u]).map(u => [u, ...PESS.ev[u]])
+      .filter(e => { const k = norm(e[2]).replace(/[^a-z]/g, "").slice(0, 12); return !vistos.has(k) && vistos.add(k); }).slice(0, 3);
     return `<article class="pessoa" data-id="${esc(x.id)}">
       <div><h3>${esc(nome)}</h3><div class="uni">${esc(uni)}</div></div>
       <div class="num">${partes.join(" · ")}</div>
       <div class="temas">${x.prods.filter(p => PROD[p]).map(p => `<span class="tag"><i style="background:${CORES[PROD[p][1]]}"></i>${esc(PROD[p][0])}</span>`).join("")}</div>
       ${ev.length ? `<ul>${ev.map(([u, , tit, ano, url]) => `<li><span class="ano">${esc(ano)}</span><a href="${esc(url)}" target="_blank" rel="noopener" data-u="${esc(u)}">${esc(tit)}</a></li>`).join("")}</ul>` : ""}
     </article>`;
-  }).join("");
+  };
+  $("pessoas").innerHTML = lista.map(cartao).join("")
+    + (daUnidade.length ? `<h3 class="sub-rede">Na Embrapa Territorial</h3>${daUnidade.map(cartao).join("")}` : "");
 }
 $("pessoas").onclick = e => {
   const a = e.target.closest("a"); if (!a) return;
-  const card = a.closest(".pessoa"), pos = [...$("pessoas").children].indexOf(card) + 1;
+  const card = a.closest(".pessoa"), pos = [...$("pessoas").querySelectorAll(".pessoa")].indexOf(card) + 1;
   registrar("abrir", { c: a.dataset.u, pos, aba: "PESSOAS", filtro: filtro ? filtro.v : "" });
 };
 $("abas").onclick = e => { const b = e.target.closest(".aba"); if (!b) return; aba = b.dataset.id; desenharKit(); desenharTela(); };

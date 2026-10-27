@@ -5,9 +5,9 @@ traz pessoas.csv.gz, pessoa_produto.csv.gz e evidencias.csv.gz):
   gh release download enriquecimento-AAAA-MM --repo danimaciel/observatorio_embrapa -D enriquecimento --clobber
 e de site/dados/resumo.json (gerado por site/preparar_site.py) os produtos que aparecem na base da Territorial.
 
-Para cada produto, as pessoas de toda a Embrapa com maior peso (critério e salvaguardas no Observatório:
+Para cada produto, as 8 pessoas de toda a Embrapa com maior peso e as 3 de maior peso da Territorial (critério e salvaguardas no Observatório:
 vínculos A/B/M, ao menos 3 documentos, 1 dos últimos 10 anos). Só nome e unidade, como nas publicações.
-  site/dados/pessoas.json  {"p": {id: [nome, unidade, n_docs, ano_ultimo]},
+  site/dados/pessoas.json  {"p": {id: [nome, unidade, n_docs, ano_ultimo, da_territorial]},
                             "pp": {produto: [[id, n_docs, n_recentes, n_projetos_lider, n_tecnologias, peso, [doc_uid]]]},
                             "ev": {doc_uid: [tipo, titulo, ano, url]}}
 Rodar depois de site/preparar_site.py:  python site/rede/preparar_pessoas.py
@@ -21,6 +21,8 @@ RAIZ = Path(__file__).resolve().parents[2]
 ENR = RAIZ / "enriquecimento"
 DADOS = RAIZ / "site" / "dados"
 POR_PRODUTO = 8
+DA_UNIDADE = 3
+UNIDADE = "territorial"
 N_EVIDENCIAS = 3
 
 if not (ENR / "pessoa_produto.csv.gz").exists():
@@ -28,11 +30,14 @@ if not (ENR / "pessoa_produto.csv.gz").exists():
 
 produtos = json.loads((DADOS / "resumo.json").read_text(encoding="utf-8"))["produtos"]
 pp = pd.read_csv(ENR / "pessoa_produto.csv.gz", dtype={"pessoa": str, "produto_id": str, "evidencias": str})
+pes = pd.read_csv(ENR / "pessoas.csv.gz", dtype=str).set_index("pessoa")
 pp = pp[pp.produto_id.isin(produtos)].sort_values(["produto_id", "peso"], ascending=[True, False])
-pp = pp.groupby("produto_id").head(POR_PRODUTO)
+# as de maior peso em toda a Embrapa e, como o piloto é da Territorial, também as da unidade
+da_unidade = pp.pessoa.map(pes.unidade_id) == UNIDADE
+pp = pd.concat([pp.groupby("produto_id").head(POR_PRODUTO),
+                pp[da_unidade].groupby("produto_id").head(DA_UNIDADE)]).drop_duplicates(["pessoa", "produto_id"])
 pp["ev"] = pp.evidencias.fillna("").str.split(";").str[:N_EVIDENCIAS]
 
-pes = pd.read_csv(ENR / "pessoas.csv.gz", dtype=str).set_index("pessoa")
 ev = pd.read_csv(ENR / "evidencias.csv.gz", dtype=str).fillna("").set_index("doc_uid")
 TIPO = {"publicacao": "PUB", "projeto": "PRJ", "tecnologia": "TEC"}
 
@@ -41,7 +46,8 @@ for r in pp.itertuples():
     if r.pessoa not in pes.index:
         continue
     p = pes.loc[r.pessoa]
-    saida["p"][r.pessoa] = [p.nome, p.unidade if isinstance(p.unidade, str) else "", int(p.n_docs), int(p.ano_ultimo)]
+    saida["p"][r.pessoa] = [p.nome, p.unidade if isinstance(p.unidade, str) else "", int(p.n_docs), int(p.ano_ultimo),
+                            int(p.unidade_id == UNIDADE)]
     uids = [u for u in r.ev if u in ev.index]
     saida["pp"].setdefault(r.produto_id, []).append(
         [r.pessoa, int(r.n_docs), int(r.n_recentes), int(r.n_projetos_lider), int(r.n_tecnologias), float(r.peso), uids])
