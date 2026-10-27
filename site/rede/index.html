@@ -364,7 +364,7 @@ const PESS = DATA.pessoas;
 let prodsAtivos = [];
 let todos = new Map(), filtro = null, aba = "PUB", kit = { PUB: [], PRJ: [], TEC: [] }, perfilProd = [], foco = null, visiveis = [];
 // constelação: produto em foco (null = visão geral das cadeias) e o caminho percorrido pelos vizinhos
-let focoProd = null, hist = [], visaoGeral = false;
+let focoProd = null, hist = [], visaoGeral = false, linkProds = [];  // linkProds: produtos que vieram pelo endereço, sem entrar no perfil
 
 /* ---------- formulário ---------- */
 const $ = id => document.getElementById(id);
@@ -386,7 +386,7 @@ function carregarLente() {
 function desenharLentes() {
   $("lentes").innerHTML = Object.entries(S.lentes).map(([id, l]) => `<button type="button" class="chip" data-id="${esc(id)}" aria-pressed="${id === S.ativa}">${esc(l.nome)}${EXEMPLOS[id] ? '<span class="ex">exemplo</span>' : ""}</button>`).join("");
 }
-$("lentes").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.ativa = b.dataset.id; filtro = null; focoProd = null; hist = []; visaoGeral = false; guardar(); carregarLente(); };
+$("lentes").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.ativa = b.dataset.id; filtro = null; focoProd = null; hist = []; visaoGeral = false; linkProds = []; guardar(); carregarLente(); };
 $("texto").addEventListener("input", () => { L().texto = $("texto").value; detectar(); });
 $("uf").onchange = () => { L().uf = $("uf").value; atualizar(); };
 $("form").onsubmit = e => { e.preventDefault(); L().texto = $("texto").value; atualizar();
@@ -400,9 +400,10 @@ $("guardarLente").onclick = () => {
   $("notaLente").textContent = `Lente "${nome}" guardada neste navegador.`;
 };
 
+const produtosNoTexto = texto => { const t = " " + norm(texto) + " "; return Object.keys(ALIAS).filter(id => ALIAS[id].some(a => new RegExp("[^a-z]" + a + "[^a-z]").test(t))); };
 function detectar() {
   const t = " " + norm($("texto").value) + " ";
-  perfilProd = Object.keys(ALIAS).filter(id => ALIAS[id].some(a => new RegExp("[^a-z]" + a + "[^a-z]").test(t)));
+  perfilProd = produtosNoTexto(t);
   const off = new Set(L().off || []);
   // escolhidos à mão ficam juntos com os encontrados no texto; clicar tira (escolhido) ou ignora (encontrado)
   const esc_ = (L().escolhidos || []).filter(id => PROD[id] && !perfilProd.includes(id));
@@ -518,7 +519,7 @@ function atualizar() {
   kit = out; todos = new Map(res.map(r => [r.d.i, r])); prodsAtivos = prods; guardar();
   if (REDE) {
     if (focoProd && !temRede(focoProd)) focoProd = null;
-    if (focoProd && !prods.includes(focoProd) && !hist.length && !(filtro && filtro.k === "rede")) focoProd = null;
+    if (focoProd && !prods.includes(focoProd) && !linkProds.includes(focoProd) && !hist.length && !(filtro && filtro.k === "rede")) focoProd = null;
     if (!focoProd && !visaoGeral) focoProd = prods.find(temRede) || null;
   }
   montarGrafo(prods);
@@ -542,7 +543,7 @@ function resumirMapa() {
 /* ---------- produto em foco ---------- */
 function desenharFocos() {
   if (!REDE) return;
-  const lista = prodsAtivos.filter(temRede);
+  const lista = [...new Set([...linkProds, ...prodsAtivos])].filter(temRede);
   const fora = focoProd && !lista.includes(focoProd);
   const chip = (id, on) => `<button type="button" class="chip" data-p="${esc(id)}" aria-pressed="${on}"><i style="background:${CORES[PROD[id][1]]}"></i>${esc(PROD[id][0])}</button>`;
   $("focos").innerHTML = (hist.length ? `<button type="button" class="chip voltar" data-voltar="1">← ${esc(PROD[hist[hist.length - 1]][0])}</button>` : "")
@@ -1037,21 +1038,39 @@ $("semRegistro").onclick = () => { semRegistro = true; try { localStorage.setIte
 /* ---------- endereço com produto e tema: …/rede/#p=soja&t=T041 abre a rede já nesse ponto ----------
    p = código do produto (ou o nome, sem acento), t = código do tema; os dois vêm de ../dados/rede.json.
    Serve para outras páginas (mapas de eventos, portais) apontarem "o que a Embrapa publicou sobre isto". */
+// tema do produto mais próximo de um texto: palavras do texto no rótulo e nas palavras-chave do tema
+function temaDoTexto(p, texto) {
+  // nomes de produtos não ajudam a escolher o tema (o produto já está escolhido)
+  const nomes = new Set(Object.values(ALIAS).flat());
+  const ws = norm(texto).split(/[^a-z]+/).filter(w => w.length > 3 && !STOP.has(w) && !nomes.has(w) && !nomes.has(w.replace(/s$/, "")));
+  let melhor = null, nota = 0;
+  for (const x of REDE.pt[p] || []) {
+    const alvo = norm(temaNome(x[0]) + " " + x[3].map(k => k[0]).join(" "));
+    const n = ws.filter(w => alvo.includes(w.length > 5 ? w.slice(0, -1) : w)).length;
+    if (n > nota) { nota = n; melhor = x[0]; }
+  }
+  return melhor;
+}
 function lerEndereco() {
   if (!REDE) return false;
-  const h = new URLSearchParams(location.hash.slice(1));
-  let p = h.get("p"), t = h.get("t");
-  if (p && !PROD[p]) { const n = norm(p).trim(); p = Object.keys(PROD).find(id => norm(PROD[id][0]) === n) || null; }
-  if (!p || !temRede(p)) return false;
+  const h = new URLSearchParams(location.hash.slice(1)), q = h.get("q") || "";
+  const porNome = v => { if (PROD[v]) return v; const n = norm(v).trim(); return Object.keys(PROD).find(id => norm(PROD[id][0]) === n) || null; };
+  // p=soja,milho (códigos ou nomes) e/ou q=texto livre, de onde saem os produtos como no campo do perfil
+  const ps = [...new Set([...(h.get("p") || "").split(",").filter(Boolean).map(porNome), ...(q ? produtosNoTexto(q) : [])])].filter(p => p && temRede(p));
+  if (!ps.length) return false;
+  const p = ps[0];
+  let t = h.get("t");
   if (t && !REDE.pt[p].some(x => x[0] === t)) t = null;
-  focoProd = p; hist = []; visaoGeral = false; filtro = { k: "rede", p, t };
+  if (!t && q) t = temaDoTexto(p, q);
+  linkProds = ps; focoProd = p; hist = []; visaoGeral = false; filtro = { k: "rede", p, t };
   let origem = ""; try { origem = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
-  registrar("link", { produto: p, tema: t || "", origem });
+  registrar("link", { produto: ps.join(" "), tema: t || "", q: limparPessoal(q).slice(0, 200), origem });
   return true;
 }
 // o endereço acompanha o produto e o tema escolhidos, para copiar e compartilhar
 function guardarEndereco() {
-  const novo = filtro && filtro.k === "rede" ? `#p=${filtro.p}${filtro.t ? "&t=" + filtro.t : ""}` : "";
+  const ps = filtro && filtro.k === "rede" ? [filtro.p, ...linkProds.filter(x => x !== filtro.p)] : [];
+  const novo = ps.length ? `#p=${ps.join(",")}${filtro.t ? "&t=" + filtro.t : ""}` : "";
   if (novo !== location.hash) history.replaceState(null, "", location.pathname + location.search + novo);
 }
 const veioPorLink = lerEndereco();
