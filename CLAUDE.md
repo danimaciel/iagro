@@ -4,7 +4,7 @@ Demonstração de como bases da Embrapa (BDPA, Infoteca) podem ser reposicionada
 jeito e chega ao documento certo. Piloto: **o que a Embrapa Territorial produziu e produz** (publicações,
 soluções tecnológicas, projetos). Página: https://danimaciel.github.io/iagro/ · repo público danimaciel/iagro.
 
-**Comece lendo `estado.md`** e atualize-o ao fim de cada sessão. Contexto inicial e decisões de 05/10/2026 em
+**Comece lendo `estado.md`** (local, fora do git) e atualize-o ao fim de cada sessão. Contexto inicial e decisões de 05/10/2026 em
 `PONTO_DE_PARTIDA.md` (local, fora do git).
 
 ## Família iAgro
@@ -31,7 +31,7 @@ em danimaciel/observatorio_embrapa); regras mudam lá.
 (nomes, matrículas) — uso interno ou ignorar; **nunca** entra na base do agente nem em nada público. Em outro
 computador, baixe as exportações públicas do Redape para `Dados/` (o `pipeline/redape.py` do iagro-embrapa faz isso).
 
-## Regras da usuária
+## Regras do projeto
 
 - Escopo só da Embrapa Territorial; nada de SAF (do SAF/SAC veio só o método). Gestores públicos e técnicos
   também são público.
@@ -39,4 +39,6 @@ computador, baixe as exportações públicas do Redape para `Dados/` (o `pipelin
 - Sem custo de manutenção: nada que dependa de conta paga; modelos abertos.
 - Números sempre com fonte e etapa; documentar sempre (`.md` + `.docx` para outras pessoas).
 - Avaliações com Ollama: `--threads 6`, para o PC seguir usável. Nunca testar WebLLM no painel do Claude.
-- Português do Brasil em textos, código e commits. Publicar (push) depois do OK da usuária.
+- Português do Brasil em textos, código e commits. Publicar (push) só depois de aprovação explícita.
+- Textos públicos (código, comentários, docs): o repositório é público; escrever em tom de método,
+  com datas e critérios, sem citar quem pediu, decidiu ou aprovou.
