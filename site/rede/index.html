@@ -252,7 +252,7 @@ footer p { margin: 0; max-width: 90ch }
   </section>
 
   <footer>
-    <p>Protótipo com <span id="fonte">os documentos da Embrapa Territorial no Redape</span>, com produtos, estados e biomas do Observatório de Pesquisa da Embrapa. Aqui a recomendação usa palavras do perfil; a versão final usa a busca por significado do iAgro sobre os 185 mil documentos de toda a Embrapa.</p>
+    <p>Protótipo com <span id="fonte">os documentos da Embrapa Territorial no Redape</span>, com produtos, estados e biomas do Observatório de Pesquisa da Embrapa. Aqui a recomendação usa palavras do perfil; a versão final usa a busca por significado do iAgro sobre os 185 mil documentos de toda a Embrapa.<span id="escopo"></span></p>
     <p>Não é um serviço oficial da Embrapa.</p>
   </footer>
 </div>
@@ -566,6 +566,10 @@ function itensRede(tipo) {
     .sort((a, b) => b.s - a.s || (+b.d.a || 0) - (+a.d.a || 0));
   return [...terr, ...exemplosRede([p], tipo, t)].slice(0, 60);
 }
+// todos os documentos do produto (e tema) na busca do iAgro Embrapa, que filtra pelo mesmo enriquecimento
+const IAGRO_EMBRAPA = "https://danimaciel.github.io/iagro-embrapa/";
+const linkTodos = (p, t) => IAGRO_EMBRAPA + "#p=" + encodeURIComponent(p) + (t ? "&t=" + encodeURIComponent(t) : "");
+const totalPar = (p, t) => ((REDE.pt[p] || []).find(x => x[0] === t) || [, 0])[1];
 function itensVisiveis() {
   if (aba === "SALVOS") return S.salvos.map(c => POR_CODIGO.get(c) || docRede(c)).filter(Boolean).map(d => todos.get(d.i) || { d, why: [], s: 0 });
   if (!filtro) return kit[aba];
@@ -587,7 +591,7 @@ function desenharKit() {
   $("abas").innerHTML = abas.map(([id, nome, n]) => `<button type="button" class="aba" role="tab" data-id="${id}" aria-selected="${id === aba}">${nome}<b>${n}</b></button>`).join("");
   if (filtro && filtro.k === "rede") {
     $("filtro").hidden = false;
-    $("filtro").innerHTML = `<span>${filtro.t ? `<strong>${esc(temaNome(filtro.t))}</strong> em ` : ""}<strong>${esc(PROD[filtro.p][0])}</strong>: primeiro o que é da Embrapa Territorial, depois exemplos de toda a Embrapa</span> <button type="button" id="limpar">${prodsAtivos.includes(filtro.p) ? "voltar ao kit" : "limpar"}</button>`;
+    $("filtro").innerHTML = `<span>${filtro.t ? `<strong>${esc(temaNome(filtro.t))}</strong> em ` : ""}<strong>${esc(PROD[filtro.p][0])}</strong>: primeiro o que é da Embrapa Territorial, depois exemplos de toda a Embrapa. <a href="${linkTodos(filtro.p, filtro.t)}" target="_blank" rel="noopener">Ver ${filtro.t ? `todos os ${totalPar(filtro.p, filtro.t).toLocaleString("pt-BR")}` : "todos"} no iAgro Embrapa</a></span> <button type="button" id="limpar">${prodsAtivos.includes(filtro.p) ? "voltar ao kit" : "limpar"}</button>`;
     $("limpar").onclick = () => { filtro = filtro.t && !prodsAtivos.includes(filtro.p) ? { ...filtro, t: null } : null; desenharKit(); desenharTela(); };
   } else if (filtro) { $("filtro").hidden = false; $("filtro").innerHTML = `Todo o acervo de <strong>${esc(filtro.k === "cat" ? filtro.v : PROD[filtro.v][0])}</strong>, do mais próximo do seu perfil ao mais distante <button type="button" id="limpar">limpar</button>`; $("limpar").onclick = () => { filtro = null; desenharKit(); desenharTela(); }; }
   else $("filtro").hidden = true;
@@ -664,6 +668,7 @@ $("pessoas").onclick = e => {
   const card = a.closest(".pessoa"), pos = [...$("pessoas").querySelectorAll(".pessoa")].indexOf(card) + 1;
   registrar("abrir", { c: a.dataset.u, pos, aba: "PESSOAS", filtro: filtroTexto() });
 };
+$("filtro").addEventListener("click", e => { if (e.target.closest("a")) registrar("todos", { filtro: filtroTexto() }); });
 $("abas").onclick = e => { const b = e.target.closest(".aba"); if (!b) return; aba = b.dataset.id; desenharKit(); desenharTela(); };
 $("lista").onclick = e => {
   const a = e.target.closest("h3 a");
@@ -1007,6 +1012,8 @@ Promise.all([fetch("../dados/documentos.json").then(r => r.json()), fetch("../da
     for (const [id, p] of Object.entries(resumo.produtos || {})) prod[id] = [p.nome, p.cat];
     const DATA = { prod, docs: docs.map(x => [x.c, corta(x.t, 180), corta(x.r, 230), x.a, corta(x.d, 60), corta(x.k, 140), x.l, x.pp || [], x.uf || [], x.bi || []]), pessoas, rede };
     document.getElementById("fonte").textContent = `os ${resumo.n.toLocaleString("pt-BR")} documentos da ${resumo.unidade} no Redape (${resumo.exportacao}: ${resumo.publicacoes.toLocaleString("pt-BR")} publicações, ${resumo.projetos} projetos, ${resumo.solucoes} soluções tecnológicas)`;
+    // dois escopos na mesma página: o mapa de cada produto conta toda a Embrapa; a lista traz a Territorial inteira e uma amostra do resto
+    if (rede) document.getElementById("escopo").textContent = " O mapa de cada produto (temas, palavras-chave e produtos vizinhos) conta todos os documentos da Embrapa em que o produto aparece no título ou nas palavras-chave; a lista traz primeiro os da Embrapa Territorial e, das demais unidades, só uma amostra: os mais recentes de cada tema.";
     window.iniciar(DATA);
   })
   .catch(() => { document.getElementById("tKit").textContent = "Não foi possível carregar os dados. Recarregue a página."; });
