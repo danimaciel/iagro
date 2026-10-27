@@ -12,6 +12,13 @@ Atualizado em 23/10/2026.
 - Filtros e etiquetas de produto e estado (camadas do Observatório), janela "Sobre o iAgro", favicon e selo do
   topo comuns aos três iAgros (19/10).
 
+## Rede iAgro (27/10/2026, em revisão)
+
+- Nova página em `site/rede/` (https://danimaciel.github.io/iagro/rede/ depois do merge): perfil → kit inicial
+  (15 publicações, 5 projetos, 5 soluções) e mapa das cadeias; lê `site/dados/` desta mesma página.
+- Registro anônimo de uso numa planilha Google (`rede/registro/`), já implantado pela usuária; falta conferir de
+  ponta a ponta com a página no ar. Detalhes em `rede/README.md`.
+
 ## Agente local (Google ADK + Ollama)
 
 Avaliado com o gabarito: Qwen 2.5 7B citou o documento esperado em 19 de 20 perguntas da Territorial e
