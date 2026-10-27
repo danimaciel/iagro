@@ -15,8 +15,8 @@ soluções tecnológicas da Embrapa Territorial e mostra como o perfil se liga �
   página traz são exemplos.
 - **Registro de uso:** anônimo, numa planilha Google via Apps Script (`rede/registro/`). Só liga na página
   publicada (`*.github.io`), com botão "Não registrar o meu uso".
-- **Quem trabalha com isso:** para os produtos do perfil (ou a cadeia/produto filtrado), até 9 pessoas da
-  Embrapa que assinam publicações, projetos e soluções sobre o tema, com até 3 trabalhos como evidência. Vem do
+- **Quem trabalha com isso:** para os produtos do perfil (ou a cadeia/produto filtrado), até 6 pessoas de toda a
+  Embrapa e mais 3 da Territorial que assinam trabalhos sobre o tema, com até 3 trabalhos como evidência. Vem do
   Observatório (`pessoas.csv.gz`, `pessoa_produto.csv.gz`, `evidencias.csv.gz` na release de enriquecimento;
   critério e salvaguardas em `pipeline/py/enriquecimento.py` de lá): vínculos de confiança A/B/M, ao menos 3
   trabalhos no tema, 1 dos últimos 10 anos; só nome e unidade, como nas publicações. Gerado por
