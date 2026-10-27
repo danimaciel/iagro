@@ -16,7 +16,7 @@ Atualizado em 23/10/2026.
 
 - Nova página em `site/rede/` (https://danimaciel.github.io/iagro/rede/ depois do merge): perfil → kit inicial
   (15 publicações, 5 projetos, 5 soluções) e mapa das cadeias; lê `site/dados/` desta mesma página.
-- Registro anônimo de uso numa planilha Google (`rede/registro/`), já implantado pela usuária; falta conferir de
+- Registro anônimo de uso numa planilha Google (`rede/registro/`), já implantado; falta conferir de
   ponta a ponta com a página no ar. Detalhes em `rede/README.md`.
 - **Quem trabalha com isso (27/10, branch `rede-pessoas`):** seção com pessoas da Embrapa por produto do perfil,
   lida de `site/dados/pessoas.json` (`site/rede/preparar_pessoas.py`). Depende do PR #1 do observatorio_embrapa
