@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rede iAgro</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: três colunas — perfil (quem é você) · constelação das cadeias em curvas de nível · kit recomendado; empilha no celular */
+:root {
+  --bg: #0f1713; --panel: #16211b; --panel-2: #1d2b23; --line: #2a3a30; --fg: #e7ece6; --muted: #9db0a3;
+  --accent: #b9dc82; --accent-ink: #0a2a1e; --focus: #d4ec9f; --terra: #d0a070;
+  --hero: #0a2a1e; --hero-ink: #f3f1e6; --hero-muted: #b8c9b4; --hero-leaf: #b9dc82;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f6f4ec; --panel: #ffffff; --panel-2: #eef0e6; --line: #e2e0d4; --fg: #17251d; --muted: #5b6b61;
+  --accent: #1f6b45; --accent-ink: #ffffff; --focus: #1f6b45; --terra: #8a5a3b;
+  --hero: #0d3b2a; --hero-ink: #f3f1e6; --hero-muted: #c3d3c0; --hero-leaf: #a9cf6e; color-scheme: light } }
+:root[data-theme="light"] {
+  --bg: #f6f4ec; --panel: #ffffff; --panel-2: #eef0e6; --line: #e2e0d4; --fg: #17251d; --muted: #5b6b61;
+  --accent: #1f6b45; --accent-ink: #ffffff; --focus: #1f6b45; --terra: #8a5a3b;
+  --hero: #0d3b2a; --hero-ink: #f3f1e6; --hero-muted: #c3d3c0; --hero-leaf: #a9cf6e; color-scheme: light }
+
+* { box-sizing: border-box }
+html, body { background: var(--bg); color: var(--fg) }
+body { font-family: var(--display); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px }
+a { color: inherit }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+.wrap { max-width: 1480px; margin: 0 auto; display: grid; gap: 20px }
+
+/* topo */
+.top { position: relative; overflow: hidden; isolation: isolate; background: radial-gradient(120% 90% at 85% 0%, #2a7a4f 0%, var(--hero) 55%, #082619 100%); color: var(--hero-ink); border-radius: 16px; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px 32px }
+.marca { display: grid; gap: 4px; min-width: 0 }
+.top .eyebrow, .top .lentes .rot { color: var(--hero-muted) }
+.top .sub { color: var(--hero-muted) }
+.top .chip { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .25); color: var(--hero-ink) }
+.top .chip:hover { border-color: var(--hero-ink) }
+.top .chip[aria-pressed="true"] { background: var(--hero-leaf); color: #0a2a1e; border-color: var(--hero-leaf) }
+.top svg.relevo { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .26; pointer-events: none; z-index: -1; -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 72%); mask-image: linear-gradient(90deg, transparent 30%, #000 72%) }
+.lentes .ex { font-family: var(--mono); font-size: 10.5px; opacity: .7; margin-left: 4px }
+.eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+h1 { margin: 0; font-size: clamp(30px, 4.2vw, 46px); font-weight: 800; letter-spacing: -.02em; line-height: 1 }
+h1 em { font-family: var(--serif); font-weight: 400; font-style: italic; letter-spacing: 0; color: var(--hero-leaf) }
+.sub { margin: 0; color: var(--muted); max-width: 62ch; text-wrap: balance }
+.lentes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.lentes .rot { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13.5px; white-space: nowrap }
+.chip:hover { border-color: var(--muted) }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600 }
+
+/* grade principal */
+.grade { display: grid; grid-template-columns: 320px minmax(0, 1fr) 420px; gap: 20px; align-items: start }
+@media (max-width: 1180px) { .grade { grid-template-columns: 300px minmax(0, 1fr) } .kit { grid-column: 1 / -1 } }
+@media (max-width: 760px) { .grade { grid-template-columns: minmax(0, 1fr) } }
+.painel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; min-width: 0 }
+
+/* perfil */
+.perfil { padding: 18px; display: grid; gap: 16px }
+.perfil h2, .kit h2 { margin: 0; font-size: 18px; font-weight: 600 }
+.campo { display: grid; gap: 6px }
+.campo > label, .campo > .rotulo { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+textarea { width: 100%; min-height: 128px; resize: vertical; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; line-height: 1.45 }
+select, input[type="text"] { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px }
+.opcoes { display: flex; flex-wrap: wrap; gap: 6px }
+.opcoes .chip { font-size: 12.5px; padding: 4px 10px }
+.detectadas { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px }
+.tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px 3px 8px; font-size: 12.5px; background: var(--panel-2); border: 1px solid var(--line); cursor: pointer }
+.tag i { width: 8px; height: 8px; border-radius: 50%; flex: none }
+.tag.off { opacity: .45; text-decoration: line-through }
+.vazio { color: var(--muted); font-size: 13px; font-style: italic; font-family: var(--serif) }
+.acoes { display: flex; flex-wrap: wrap; gap: 8px }
+.btn { border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; cursor: pointer; background: var(--accent); color: var(--accent-ink) }
+.btn.sec { background: transparent; color: var(--fg); border: 1px solid var(--line); font-weight: 400 }
+.nota { margin: 0; font-size: 12.5px; color: var(--muted) }
+.salvar-lente { display: flex; gap: 8px }
+.salvar-lente input { flex: 1; min-width: 0 }
+
+/* mapa */
+.mapa { position: relative; overflow: hidden; display: grid }
+.mapa-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; padding: 16px 18px 0 }
+.mapa-cab h2 { margin: 0; font-size: 18px; font-weight: 600 }
+.mapa-cab p { margin: 0; font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 15px }
+canvas { display: block; width: 100%; height: 620px; cursor: default; touch-action: manipulation }
+@media (max-width: 760px) { canvas { height: 420px } }
+.dica { position: absolute; pointer-events: none; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; max-width: 260px; box-shadow: 0 6px 18px rgb(0 0 0 / .25) }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 18px 16px; font-size: 12.5px; color: var(--muted) }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; cursor: pointer }
+.legenda i { width: 9px; height: 9px; border-radius: 50%; flex: none }
+.legenda span.ativa { color: var(--fg); font-weight: 600 }
+
+/* kit */
+.kit { display: grid; grid-template-rows: auto auto 1fr; max-height: 900px }
+.kit-cab { padding: 16px 18px 10px; display: grid; gap: 10px; border-bottom: 1px solid var(--line) }
+.kit-cab .linha { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap }
+.abas { display: flex; flex-wrap: wrap; gap: 6px }
+.aba { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px }
+.aba b { font-family: var(--mono); font-weight: 500; margin-left: 4px; font-variant-numeric: tabular-nums }
+.aba[aria-selected="true"] { background: var(--panel-2); border-color: var(--muted) }
+.filtro { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted) }
+.filtro button { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; cursor: pointer; font-size: 12.5px; color: var(--fg) }
+.lista { overflow-y: auto; padding: 6px 18px 18px; display: grid; gap: 0; align-content: start; min-height: 0 }
+.item { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; scroll-margin: 12px }
+.item:last-child { border-bottom: 0 }
+.item.foco { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent); margin-inline: -18px; padding-inline: 18px }
+.meta { font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center }
+.meta .tipo { text-transform: uppercase; letter-spacing: .08em }
+.comece { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 1px 8px; font-family: var(--display); font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 11.5px }
+.item h3 { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.3; text-wrap: pretty }
+.item h3 a { text-decoration: none }
+.item h3 a:hover { text-decoration: underline; text-underline-offset: 3px }
+.item p { margin: 0; color: var(--muted); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.porque { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.porque .rot { font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 13.5px }
+.porque .tag { cursor: default }
+.guardar { justify-self: start; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-size: 13px }
+.guardar[aria-pressed="true"] { color: var(--accent); font-weight: 600 }
+
+/* rede */
+.rede { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: center; padding: 18px 20px }
+@media (max-width: 760px) { .rede { grid-template-columns: minmax(0, 1fr) } }
+.rede h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600 }
+h1 em .i { color: #d6a675 }
+.rede h2 em { font-family: var(--serif); font-weight: 400; color: var(--terra) }
+.rede p { margin: 0; color: var(--muted); max-width: 70ch }
+.selo { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; border: 1px dashed var(--muted); border-radius: 999px; padding: 6px 12px; color: var(--muted); white-space: nowrap }
+footer { color: var(--muted); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between }
+footer p { margin: 0; max-width: 90ch }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg class="relevo" id="relevo" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <div class="marca">
+      <span class="eyebrow">Rede iAgro · protótipo visual</span>
+      <h1>Rede <em><span class="i">i</span>Agro</em></h1>
+      <p class="sub">Conte quem você é e o que procura. A rede organiza publicações, projetos e tecnologias da Embrapa a partir do seu perfil, da sua cadeia e do seu território.</p>
+    </div>
+    <nav class="lentes" aria-label="Perfis salvos">
+      <span class="rot">Perfis salvos</span>
+      <div class="lentes" id="lentes"></div>
+    </nav>
+  </header>
+
+  <main class="grade">
+    <form class="painel perfil" id="form" autocomplete="off">
+      <h2>Seu perfil</h2>
+      <div class="campo">
+        <label for="texto">Quem é você e o que procura?</label>
+        <textarea id="texto"></textarea>
+      </div>
+      <div class="campo">
+        <span class="rotulo">Você é</span>
+        <div class="opcoes" id="atores" role="group" aria-label="Tipo de ator"></div>
+      </div>
+      <div class="campo">
+        <span class="rotulo">Bioma</span>
+        <div class="opcoes" id="biomas" role="group" aria-label="Bioma"></div>
+      </div>
+      <div class="campo">
+        <label for="uf">Estado</label>
+        <select id="uf"></select>
+      </div>
+      <div class="campo">
+        <span class="rotulo">Cadeias encontradas no seu texto</span>
+        <div class="detectadas" id="detectadas"></div>
+      </div>
+      <div class="acoes">
+        <button class="btn" type="submit">Montar meu kit</button>
+      </div>
+      <div class="campo">
+        <label for="nomeLente">Guardar este perfil com um nome</label>
+        <div class="salvar-lente">
+          <input type="text" id="nomeLente" placeholder="Ex.: Projeto de mestrado">
+          <button class="btn sec" type="button" id="guardarLente">Guardar</button>
+        </div>
+        <p class="nota" id="notaLente">O perfil fica só neste navegador.</p>
+        <p class="nota" id="avisoRegistro" hidden>Para melhorar a Rede iAgro, guardamos o perfil e os itens abertos sem identificar você. <button type="button" class="btn sec" id="semRegistro" style="padding:2px 8px;font-size:12.5px">Não registrar o meu uso</button></p>
+      </div>
+    </form>
+
+    <section class="painel mapa" aria-labelledby="tMapa">
+      <div class="mapa-cab">
+        <h2 id="tMapa">Sua constelação</h2>
+        <p id="resumoMapa"></p>
+      </div>
+      <canvas id="tela" aria-label="Mapa das cadeias produtivas ligadas ao seu perfil"></canvas>
+      <div class="dica" id="dica" hidden></div>
+      <div class="legenda" id="legenda"></div>
+    </section>
+
+    <section class="painel kit" aria-labelledby="tKit">
+      <div class="kit-cab">
+        <div class="linha">
+          <h2 id="tKit">Seu kit inicial</h2>
+          <span class="eyebrow" id="kitTotal"></span>
+        </div>
+        <div class="abas" role="tablist" id="abas"></div>
+        <div class="filtro" id="filtro" hidden></div>
+      </div>
+      <div class="lista" id="lista" role="tabpanel"></div>
+    </section>
+  </main>
+
+  <section class="painel rede">
+    <div>
+      <h2>Pessoas com interesses <em>próximos</em></h2>
+      <p>Na próxima fase, quem quiser poderá publicar uma lente e encontrar pesquisadores, técnicos e produtores com interesses parecidos, sempre com consentimento. Por enquanto, seu perfil fica só neste navegador.</p>
+    </div>
+    <span class="selo">Próxima fase</span>
+  </section>
+
+  <footer>
+    <p>Protótipo com <span id="fonte">os documentos da Embrapa Territorial no Redape</span>, com produtos, estados e biomas do Observatório de Pesquisa da Embrapa. Aqui a recomendação usa palavras do perfil; a versão final usa a busca por significado do iAgro sobre os 185 mil documentos de toda a Embrapa.</p>
+    <p>Não é um serviço oficial da Embrapa.</p>
+  </footer>
+</div>
+
+
+<script>
+window.iniciar = (DATA) => {
+"use strict";
+const COTA = { PUB: 15, PRJ: 5, TEC: 5 };
+const NOME_TIPO = { PUB: "Publicação", PRJ: "Projeto", TEC: "Tecnologia" };
+const PLURAL = { PUB: "Publicações", PRJ: "Projetos", TEC: "Tecnologias" };
+const CORES = {
+  "Grãos": "#e3b04b", "Cana e energia": "#b8c25a", "Pastagens e forrageiras": "#6fae6a", "Frutas": "#e2795d",
+  "Silvicultura": "#3f9c7f", "Fibras": "#d9c09b", "Estimulantes e especiarias": "#c4844a", "Pecuária": "#c9503f",
+  "Aquicultura": "#4aa2c4", "Produtos de origem animal": "#d88aa0", "Extrativismo vegetal": "#8b9f4f",
+  "Hortaliças": "#9bd17a", "Oleaginosas e palmeiras": "#b98fd0"
+};
+const ATORES = ["Produtor", "Técnico ou extensionista", "Pesquisador", "Estudante", "Gestão pública", "Empresa ou cooperativa"];
+const BIOMAS = ["Amazônia", "Cerrado", "Caatinga", "Mata Atlântica", "Pampa", "Pantanal"];
+const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+const STOP = new Set("para pelo pela pelos pelas como com sem sobre entre quero queria gostaria trabalho trabalha trabalhar sou estou tenho minha meu meus minhas nossa nosso esse essa este esta isso aqui onde quando muito mais menos tambem entender saber conhecer usar uso fazer area areas coisa coisas pessoa pessoas forma formas pode podem seja sendo sido ainda apenas cada todo toda todos todas outro outra outros outras qual quais regiao estado estados brasil brasileira brasileiro embrapa".split(" "));
+const EXTRA = {
+  cafe: ["cafe", "cafeicultura", "cafeeiro", "cafezal"], cana: ["cana", "canavial", "sucroenergetico", "etanol", "canavieira"],
+  pastagem: ["pastagem", "pastagens", "pasto", "forrageira", "forragem"], leite: ["leite", "leiteiro", "leiteira", "laticinio"],
+  bovinos: ["bovino", "bovinos", "gado", "boi", "bovinocultura"], soja: ["soja", "sojicultura"], algodao: ["algodao", "cotonicultura"],
+  eucalipto: ["eucalipto"], peixes: ["peixe", "peixes", "piscicultura", "pescado", "aquicultura"], laranja: ["laranja", "citros", "citricultura"],
+  uva: ["uva", "viticultura", "vinho"], milho: ["milho"], trigo: ["trigo"], feijao: ["feijao", "caupi"], borracha: ["seringueira", "borracha"],
+  florestas_plantadas: ["florestas plantadas", "silvicultura", "reflorestamento"], frutas: ["fruticultura", "frutas"],
+  suinos: ["suino", "suinos", "suinocultura"], aves: ["frango", "avicultura", "aves"], arroz: ["arroz"], extrativismo: ["extrativismo", "extrativista"]
+};
+
+const norm = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+/* ---------- registro anônimo (planilha Google via Apps Script; ver registro/LEIAME.md) ----------
+   Sem IP, cookie ou identificador de pessoa. A visita recebe um código aleatório só para ligar os eventos dela.
+   Só funciona com a página publicada (GitHub Pages); dentro de um Artifact o envio é bloqueado e nada sai. */
+const REGISTRO_URL = "https://script.google.com/macros/s/AKfycbzNZelTMRgo50_XguX2Pn1RhXiYkQF10HdqFQQ-b_nuTmTma3iOMeC3xworpnJHRbU/exec";   // vazio = registro desligado
+const PUBLICADA = /github\.io$/.test(location.hostname);   // só registra na página publicada
+const VISITA = Math.random().toString(36).slice(2, 10);
+let semRegistro = false;
+try { semRegistro = localStorage.getItem("redeiagro-sem-registro") === "1"; } catch (e) {}
+const registroAtivo = () => !!REGISTRO_URL && PUBLICADA && !semRegistro;
+const limparPessoal = t => String(t || "")
+  .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[e-mail]")
+  .replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, "[cpf]")
+  .replace(/\(?\d{2}\)?\s?9?\d{4}-\d{4}/g, "[telefone]")
+  .replace(/\d{8,}/g, "[número]").slice(0, 500);
+function registrar(ev, dados) {
+  if (!registroAtivo()) return;
+  try {
+    fetch(REGISTRO_URL, { method: "POST", mode: "no-cors", keepalive: true,
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ev, v: 1, visita: VISITA, lente: S.ativa, ...dados }) }).catch(() => {});
+  } catch (e) { /* o registro nunca atrapalha o uso */ }
+}
+const PROD = DATA.prod;
+const CATS = [...new Set(Object.values(PROD).map(p => p[1]))].sort((a, b) => a.localeCompare(b, "pt"));
+const DOCS = DATA.docs.map((x, i) => ({
+  i, c: x[0], tipo: x[0].split(" ")[0], t: x[1], r: x[2], a: x[3], d: x[4], k: x[5], l: x[6], pp: x[7], uf: x[8], bi: x[9],
+  nt: norm(x[1]), nk: norm(x[5]), nr: norm(x[2])
+}));
+const N = DOCS.length;
+const ALIAS = {};
+for (const [id, [nome]] of Object.entries(PROD)) {
+  const base = norm(nome).replace(/\(.*?\)/g, " ").split(/[^a-z]+/).filter(w => w.length > 3).slice(0, 1);
+  ALIAS[id] = EXTRA[id] || (id.includes("_") ? [] : base);
+}
+const contagem = {};
+for (const d of DOCS) for (const p of d.pp) contagem[p] = (contagem[p] || 0) + 1;
+
+/* ---------- estado guardado no navegador ---------- */
+const CHAVE = "redeagro.v1";
+const EXEMPLOS = {
+  trabalho: { nome: "Meu trabalho", texto: "Sou técnica de assistência técnica no oeste da Bahia. Atendo produtores de soja e algodão no Cerrado e quero usar monitoramento por satélite e dados de uso da terra para orientar o planejamento das propriedades.", ator: "Técnico ou extensionista", bioma: "Cerrado", uf: "BA", off: [] },
+  cafe: { nome: "Café e carbono", texto: "Quero entender a pegada de carbono na cafeicultura e o que a pesquisa diz sobre sustentabilidade do café em Minas Gerais.", ator: "Produtor", bioma: "Mata Atlântica", uf: "MG", off: [] },
+  pasto: { nome: "Pastagens na Amazônia", texto: "Estudo recuperação de pastagens degradadas e pecuária na Amazônia, especialmente em Rondônia, para minha dissertação.", ator: "Estudante", bioma: "Amazônia", uf: "RO", off: [] }
+};
+let S = { ativa: "trabalho", lentes: structuredClone(EXEMPLOS), salvos: [] };
+try { const g = JSON.parse(localStorage.getItem(CHAVE)); if (g && g.lentes && g.lentes[g.ativa]) S = g; } catch (e) {}
+const guardar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(S)); } catch (e) {} };
+
+let todos = new Map(), filtro = null, aba = "PUB", kit = { PUB: [], PRJ: [], TEC: [] }, perfilProd = [], foco = null;
+
+/* ---------- formulário ---------- */
+const $ = id => document.getElementById(id);
+const L = () => S.lentes[S.ativa];
+$("uf").innerHTML = '<option value="">Qualquer estado</option>' + UFS.map(u => `<option>${u}</option>`).join("");
+function opcoes(el, lista, campo) {
+  el.innerHTML = lista.map(v => `<button type="button" class="chip" data-v="${esc(v)}">${esc(v)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("button"); if (!b) return; L()[campo] = L()[campo] === b.dataset.v ? "" : b.dataset.v; marcar(); atualizar(); };
+}
+opcoes($("atores"), ATORES, "ator");
+opcoes($("biomas"), BIOMAS, "bioma");
+function marcar() {
+  for (const b of $("atores").children) b.setAttribute("aria-pressed", L().ator === b.dataset.v);
+  for (const b of $("biomas").children) b.setAttribute("aria-pressed", L().bioma === b.dataset.v);
+}
+function carregarLente() {
+  $("texto").value = L().texto; $("uf").value = L().uf || ""; marcar(); desenharLentes(); atualizar();
+}
+function desenharLentes() {
+  $("lentes").innerHTML = Object.entries(S.lentes).map(([id, l]) => `<button type="button" class="chip" data-id="${esc(id)}" aria-pressed="${id === S.ativa}">${esc(l.nome)}${EXEMPLOS[id] ? '<span class="ex">exemplo</span>' : ""}</button>`).join("");
+}
+$("lentes").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.ativa = b.dataset.id; filtro = null; guardar(); carregarLente(); };
+$("texto").addEventListener("input", () => { L().texto = $("texto").value; detectar(); });
+$("uf").onchange = () => { L().uf = $("uf").value; atualizar(); };
+$("form").onsubmit = e => { e.preventDefault(); L().texto = $("texto").value; atualizar();
+  const l = L(); registrar("perfil", { ator: l.ator, bioma: l.bioma, uf: l.uf, cadeias: perfilProd.filter(p => !(l.off || []).includes(p)).join(" "), texto: limparPessoal(l.texto) }); };
+$("guardarLente").onclick = () => {
+  const nome = $("nomeLente").value.trim();
+  if (!nome) { $("notaLente").textContent = "Dê um nome à lente para guardá-la."; $("nomeLente").focus(); return; }
+  const id = "l" + Date.now().toString(36);
+  S.lentes[id] = { ...structuredClone(L()), nome, texto: $("texto").value };
+  S.ativa = id; $("nomeLente").value = ""; guardar(); desenharLentes();
+  $("notaLente").textContent = `Lente "${nome}" guardada neste navegador.`;
+};
+
+function detectar() {
+  const t = " " + norm($("texto").value) + " ";
+  perfilProd = Object.keys(ALIAS).filter(id => ALIAS[id].some(a => new RegExp("[^a-z]" + a + "[^a-z]").test(t)));
+  const off = new Set(L().off || []);
+  $("detectadas").innerHTML = perfilProd.length
+    ? perfilProd.map(id => `<span class="tag ${off.has(id) ? "off" : ""}" data-id="${id}" role="button" tabindex="0" title="Clique para ${off.has(id) ? "incluir" : "ignorar"}"><i style="background:${CORES[PROD[id][1]]}"></i>${esc(PROD[id][0])}</span>`).join("")
+    : '<span class="vazio">Cite culturas ou criações no texto (soja, café, leite…) para ligar o perfil às cadeias.</span>';
+}
+$("detectadas").addEventListener("click", e => {
+  const t = e.target.closest(".tag"); if (!t) return;
+  const off = new Set(L().off || []); off.has(t.dataset.id) ? off.delete(t.dataset.id) : off.add(t.dataset.id);
+  L().off = [...off]; atualizar();
+});
+$("detectadas").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.target.click(); } });
+
+/* ---------- recomendação (protótipo: palavras + cadeia + território) ---------- */
+function recomendar() {
+  const l = L();
+  const off = new Set(l.off || []);
+  const prods = perfilProd.filter(p => !off.has(p));
+  const aliasProd = new Set(prods.flatMap(p => ALIAS[p]));
+  const toks = [...new Set(norm(l.texto).split(/[^a-z]+/).filter(w => w.length > 3 && !STOP.has(w) && !aliasProd.has(w)))]
+    .map(w => w.length > 5 && w.endsWith("s") ? w.slice(0, -1) : w);
+  const idf = {};
+  for (const w of toks) { let df = 0; for (const d of DOCS) if (d.nt.includes(w) || d.nk.includes(w) || d.nr.includes(w)) df++; idf[w] = df ? Math.log(N / df) : 0; }
+  const res = [];
+  for (const d of DOCS) {
+    let s = 0; const pal = [], why = [];
+    for (const w of toks) {
+      if (!idf[w]) continue;
+      const v = (d.nt.includes(w) ? 3 : 0) + (d.nk.includes(w) ? 2 : 0) + (d.nr.includes(w) ? 1 : 0);
+      if (v) { s += v * idf[w]; pal.push([w, v * idf[w]]); }
+    }
+    const pm = d.pp.filter(p => prods.includes(p));
+    s += pm.length * 14;
+    for (const p of pm) why.push({ k: "p", v: p });
+    if (l.bioma && d.bi.includes(l.bioma)) { s += 5; why.push({ k: "b", v: l.bioma }); }
+    if (l.uf && d.uf.includes(l.uf)) { s += 5; why.push({ k: "u", v: l.uf }); }
+    if (s <= 0) continue;
+    const dl = norm(d.d);
+    if (l.ator === "Produtor" || l.ator === "Empresa ou cooperativa") { if (d.tipo === "TEC") s += 4; if (/circular|comunicado|folder|cartilha|folheto/.test(dl)) s += 3; }
+    if (l.ator === "Técnico ou extensionista" && /circular|comunicado|documentos|boletim/.test(dl)) s += 3;
+    if (l.ator === "Pesquisador" && /artigo|periodico/.test(dl)) s += 3;
+    if (l.ator === "Estudante" && /tese|dissertacao|livro|capitulo/.test(dl)) s += 3;
+    if (l.ator === "Gestão pública" && /territorial|politica|gestao|planejamento/.test(d.nt + d.nk)) s += 4;
+    s += Math.max(0, (+d.a || 0) - 2005) * 0.08;
+    pal.sort((a, b) => b[1] - a[1]);
+    for (const [w] of pal.slice(0, 2)) why.push({ k: "w", v: w });
+    res.push({ d, s, why });
+  }
+  res.sort((a, b) => b.s - a.s);
+  const out = { PUB: [], PRJ: [], TEC: [] };
+  for (const tipo of ["PUB", "PRJ", "TEC"]) {
+    const cap = tipo === "PUB" ? 4 : 2, porProd = {};
+    const cand = res.filter(r => r.d.tipo === tipo);
+    const vistos = new Set();
+    for (const r of cand) {
+      if (out[tipo].length >= COTA[tipo]) break;
+      const chave = r.d.nt.replace(/[^a-z]/g, "").slice(0, 22);
+      if (vistos.has(chave)) continue;
+      const p = r.d.pp[0] || "_";
+      if ((porProd[p] || 0) >= cap) continue;
+      porProd[p] = (porProd[p] || 0) + 1; vistos.add(chave); out[tipo].push(r);
+    }
+    for (const r of cand) { if (out[tipo].length >= COTA[tipo]) break; if (!out[tipo].includes(r)) out[tipo].push(r); }
+  }
+  return { out, prods, res };
+}
+
+function atualizar() {
+  detectar();
+  const { out, prods, res } = recomendar();
+  kit = out; todos = new Map(res.map(r => [r.d.i, r])); guardar();
+  montarGrafo(prods);
+  desenharKit();
+  const n = out.PUB.length + out.PRJ.length + out.TEC.length;
+  const cadeias = new Set(G.prodAtivos.map(p => PROD[p][1]));
+  $("resumoMapa").textContent = `${n} itens ligados a ${cadeias.size} ${cadeias.size === 1 ? "cadeia" : "cadeias"}`;
+  $("kitTotal").textContent = `${out.PUB.length} · ${out.PRJ.length} · ${out.TEC.length}`;
+}
+
+/* ---------- kit ---------- */
+function itensVisiveis() {
+  if (aba === "SALVOS") return DOCS.filter(d => S.salvos.includes(d.c)).map(d => todos.get(d.i) || { d, why: [], s: 0 });
+  if (!filtro) return kit[aba];
+  // com filtro: todo o acervo daquela cadeia ou produto, ordenado pela proximidade com o perfil
+  return DOCS.filter(d => d.tipo === aba && casa(d)).map(d => todos.get(d.i) || { d, why: [], s: 0 })
+    .sort((a, b) => b.s - a.s || (+b.d.a || 0) - (+a.d.a || 0)).slice(0, 60);
+}
+function casa(d) { return filtro.k === "cat" ? d.pp.some(p => PROD[p][1] === filtro.v) : d.pp.includes(filtro.v); }
+function contar(t) {
+  if (!filtro) return kit[t].length;
+  let n = 0; for (const d of DOCS) if (d.tipo === t && casa(d)) n++; return n;
+}
+function desenharKit() {
+  if (filtro && aba !== "SALVOS" && !contar(aba)) aba = ["PUB", "PRJ", "TEC"].find(t => contar(t)) || aba;
+  const abas = ["PUB", "PRJ", "TEC"].map(t => [t, PLURAL[t], contar(t)]).concat([["SALVOS", "Salvos", S.salvos.length]]);
+  $("abas").innerHTML = abas.map(([id, nome, n]) => `<button type="button" class="aba" role="tab" data-id="${id}" aria-selected="${id === aba}">${nome}<b>${n}</b></button>`).join("");
+  if (filtro) { $("filtro").hidden = false; $("filtro").innerHTML = `Todo o acervo de <strong>${esc(filtro.k === "cat" ? filtro.v : PROD[filtro.v][0])}</strong>, do mais próximo do seu perfil ao mais distante <button type="button" id="limpar">limpar</button>`; $("limpar").onclick = () => { filtro = null; desenharKit(); desenharTela(); }; }
+  else $("filtro").hidden = true;
+  const lista = itensVisiveis();
+  if (!lista.length) {
+    $("lista").innerHTML = `<p class="vazio" style="padding:16px 0">${aba === "SALVOS" ? "Nada salvo ainda. Use ☆ salvar em qualquer item do kit." : "Nenhum item com este filtro. Limpe o filtro ou ajuste o perfil."}</p>`;
+    return;
+  }
+  $("lista").innerHTML = lista.map((r, j) => {
+    const d = r.d, salvo = S.salvos.includes(d.c);
+    const why = r.why.map(w => w.k === "p" ? `<span class="tag"><i style="background:${CORES[PROD[w.v][1]]}"></i>${esc(PROD[w.v][0])}</span>`
+      : w.k === "b" ? `<span class="tag">bioma ${esc(w.v)}</span>` : w.k === "u" ? `<span class="tag">${esc(w.v)}</span>` : `<span class="tag">“${esc(w.v)}”</span>`).join("");
+    return `<article class="item ${foco === d.c ? "foco" : ""}" id="it-${d.i}">
+      <div class="meta"><span class="tipo">${NOME_TIPO[d.tipo]}</span><span>${esc(d.a)}</span><span>${esc(d.d)}</span>${j === 0 && aba !== "SALVOS" && !filtro ? '<span class="comece">comece por aqui</span>' : ""}</div>
+      <h3><a href="${esc(d.l)}" target="_blank" rel="noopener">${esc(d.t)}</a></h3>
+      ${d.r ? `<p>${esc(d.r)}</p>` : ""}
+      ${why ? `<div class="porque"><span class="rot">por que:</span>${why}</div>` : ""}
+      <button type="button" class="guardar" data-c="${esc(d.c)}" aria-pressed="${salvo}">${salvo ? "★ salvo" : "☆ salvar"}</button>
+    </article>`;
+  }).join("");
+}
+$("abas").onclick = e => { const b = e.target.closest(".aba"); if (!b) return; aba = b.dataset.id; desenharKit(); desenharTela(); };
+$("lista").onclick = e => {
+  const a = e.target.closest("h3 a");
+  if (a) { const it = a.closest(".item"), pos = [...$("lista").children].indexOf(it) + 1, d = DOCS[+it.id.slice(3)]; registrar("abrir", { c: d.c, pos, aba, filtro: filtro ? filtro.v : "" }); return; }
+  const b = e.target.closest(".guardar"); if (!b) return;
+  const c = b.dataset.c; S.salvos = S.salvos.includes(c) ? S.salvos.filter(x => x !== c) : [...S.salvos, c];
+  registrar("salvar", { c, salvo: S.salvos.includes(c) ? "sim" : "nao", aba });
+  guardar(); desenharKit();
+};
+
+/* ---------- constelação ---------- */
+const tela = $("tela"), ctx = tela.getContext("2d");
+const reduzir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let G = { nos: [], prodAtivos: [] }, W = 0, H = 0, t0 = 0, hover = null;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+function montarGrafo(prods) {
+  const itens = [...kit.PUB, ...kit.PRJ, ...kit.TEC];
+  const ativos = new Set(prods);
+  for (const r of itens) for (const p of r.d.pp) ativos.add(p);
+  G.prodAtivos = [...ativos];
+  G.perfil = new Set(prods);
+  G.itens = itens;
+  t0 = performance.now();
+  layout();
+}
+function layout() {
+  const r = tela.getBoundingClientRect(); W = r.width; H = r.height;
+  const dpr = devicePixelRatio || 1; tela.width = W * dpr; tela.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cx = W / 2, cy = H / 2, R = Math.min(W * 0.8, H) / 2 - 18;
+  const r1 = R * 0.42, r2 = R * 0.7, r3 = R * 0.93;
+  const nos = [{ tipo: "eu", x: cx, y: cy, r: 22 }];
+  const angCat = {};
+  CATS.forEach((c, k) => { const a = -Math.PI / 2 + k * 2 * Math.PI / CATS.length; angCat[c] = a;
+    nos.push({ tipo: "cat", id: c, a, x: cx + r1 * Math.cos(a), y: cy + r1 * Math.sin(a), r: 7, cor: CORES[c] }); });
+  const passo = 2 * Math.PI / CATS.length;
+  const angProd = {};
+  for (const c of CATS) {
+    const ps = Object.keys(PROD).filter(p => PROD[p][1] === c).sort((a, b) => (contagem[b] || 0) - (contagem[a] || 0));
+    ps.forEach((p, k) => { const a = angCat[c] + (ps.length === 1 ? 0 : (k / (ps.length - 1) - 0.5) * passo * 0.72); angProd[p] = a;
+      nos.push({ tipo: "prod", id: p, cat: c, a, x: cx + r2 * Math.cos(a), y: cy + r2 * Math.sin(a), r: 3 + Math.sqrt(contagem[p] || 1) * 0.55, cor: CORES[c] }); });
+  }
+  const porProd = {};
+  G.itens.forEach((it, k) => {
+    const p = it.d.pp.find(x => G.prodAtivos.includes(x));
+    let a, raio = r3;
+    if (p) { porProd[p] = (porProd[p] || 0) + 1; const n = porProd[p]; a = angProd[p] + ((n % 2 ? 1 : -1) * Math.ceil((n - 1) / 2)) * 0.07; raio = r3 - ((n - 1) % 2) * 10; }
+    else { a = -Math.PI / 2 + (k * 2.399963) % (2 * Math.PI); raio = r1 * (0.45 + (k % 3) * 0.12); }
+    nos.push({ tipo: "doc", it, p, x: cx + raio * Math.cos(a), y: cy + raio * Math.sin(a), r: it.d.tipo === "PUB" ? 3.2 : 4.6, cor: p ? CORES[PROD[p][1]] : css("--accent") });
+  });
+  G.nos = nos; G.cx = cx; G.cy = cy; G.R = R;
+  desenharTela();
+}
+function aceso(n) {
+  if (filtro) {
+    if (n.tipo === "cat") return filtro.k === "cat" ? n.id === filtro.v : PROD[filtro.v][1] === n.id;
+    if (n.tipo === "prod") return filtro.k === "cat" ? n.cat === filtro.v && G.prodAtivos.includes(n.id) : n.id === filtro.v;
+    if (n.tipo === "doc") return n.it.d.pp.some(p => filtro.k === "cat" ? PROD[p][1] === filtro.v : p === filtro.v);
+  }
+  if (n.tipo === "cat") return G.prodAtivos.some(p => PROD[p][1] === n.id);
+  if (n.tipo === "prod") return G.prodAtivos.includes(n.id);
+  return true;
+}
+function desenharTela(agora = performance.now()) {
+  const k = reduzir ? 1 : Math.min(1, (agora - t0) / 900), e = 1 - Math.pow(1 - k, 3);
+  const fg = css("--fg"), muted = css("--muted"), line = css("--line"), acc = css("--accent"), bg = css("--panel");
+  ctx.clearRect(0, 0, W, H);
+  const { cx, cy, R } = G;
+  // curvas de nível
+  ctx.lineWidth = 1; ctx.strokeStyle = line;
+  for (let j = 1; j <= 8; j++) {
+    const base = R * (0.12 + j * 0.115);
+    ctx.beginPath();
+    for (let s = 0; s <= 160; s++) {
+      const a = s / 160 * Math.PI * 2;
+      const rr = base * (1 + 0.05 * Math.sin(3 * a + j * 0.9) + 0.035 * Math.sin(5 * a - j * 1.7) + 0.02 * Math.cos(7 * a + j));
+      const x = cx + rr * Math.cos(a) * 1.06, y = cy + rr * Math.sin(a) * 0.94;
+      s ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.globalAlpha = 0.55; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  const eu = G.nos[0], byId = {};
+  for (const n of G.nos) if (n.tipo !== "doc") byId[n.tipo + ":" + n.id] = n;
+  const linha = (a, b, cor, alfa, larg) => { ctx.globalAlpha = alfa; ctx.strokeStyle = cor; ctx.lineWidth = larg; ctx.beginPath(); ctx.moveTo(a.x, a.y);
+    const mx = (a.x + b.x) / 2 + (cy - (a.y + b.y) / 2) * 0.08, my = (a.y + b.y) / 2 + ((a.x + b.x) / 2 - cx) * 0.08; ctx.quadraticCurveTo(mx, my, b.x, b.y); ctx.stroke(); };
+  // ligações
+  for (const n of G.nos) {
+    if (n.tipo === "cat") linha(eu, n, aceso(n) ? n.cor : line, aceso(n) ? 0.75 * e : 0.5, aceso(n) ? 1.6 : 1);
+    if (n.tipo === "prod") { const c = byId["cat:" + n.cat]; linha(c, n, aceso(n) ? n.cor : line, aceso(n) ? 0.8 * e : 0.35, aceso(n) ? 1.4 : 1); }
+    if (n.tipo === "doc") { const pai = n.p ? byId["prod:" + n.p] : eu; linha(pai, n, n.cor, (aceso(n) ? 0.5 : 0.08) * e, 1); }
+  }
+  ctx.globalAlpha = 1;
+  // nós
+  for (const n of G.nos) {
+    if (n.tipo === "eu") continue;
+    const on = aceso(n);
+    const x = n.tipo === "doc" ? eu.x + (n.x - eu.x) * e : n.x, y = n.tipo === "doc" ? eu.y + (n.y - eu.y) * e : n.y;
+    ctx.globalAlpha = n.tipo === "doc" ? (on ? 1 : 0.2) * e : on ? 1 : 0.35;
+    ctx.beginPath(); ctx.arc(x, y, n.r + (hover === n ? 2 : 0), 0, Math.PI * 2);
+    if (n.tipo === "prod" && G.perfil.has(n.id)) { ctx.fillStyle = n.cor; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = fg; ctx.stroke(); }
+    else if (n.tipo === "doc") { ctx.fillStyle = n.it.d.tipo === "PUB" ? n.cor : bg; ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = n.cor; ctx.stroke(); if (foco === n.it.d.c) { ctx.lineWidth = 2; ctx.strokeStyle = fg; ctx.stroke(); } }
+    else { ctx.fillStyle = on ? n.cor : muted; ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  // rótulos
+  ctx.textBaseline = "middle";
+  for (const n of G.nos) {
+    if (n.tipo === "cat" || (n.tipo === "prod" && aceso(n))) {
+      const on = aceso(n);
+      ctx.font = n.tipo === "cat" ? `600 12.5px ${css("--display")}` : `400 11.5px ${css("--display")}`;
+      const txt = n.tipo === "cat" ? n.id : PROD[n.id][0].replace(/ \(.*\)/, "");
+      const dx = Math.cos(n.a), dy = Math.sin(n.a);
+      ctx.textAlign = dx > 0.3 ? "left" : dx < -0.3 ? "right" : "center";
+      const off = n.tipo === "cat" ? 12 : n.r + 6;
+      let x = n.x + dx * off; const y = n.y + dy * off + (Math.abs(dx) <= 0.3 ? dy * 4 : 0);
+      const w = ctx.measureText(txt).width, al = ctx.textAlign;
+      const esq = al === "left" ? x : al === "right" ? x - w : x - w / 2;
+      if (esq < 6) x += 6 - esq; else if (esq + w > W - 6) x -= esq + w - (W - 6);
+      ctx.globalAlpha = on ? 1 : 0.5;
+      ctx.lineWidth = 4; ctx.strokeStyle = bg; ctx.strokeText(txt, x, y);
+      ctx.fillStyle = on ? fg : muted; ctx.fillText(txt, x, y);
+    }
+  }
+  ctx.globalAlpha = 1;
+  // você
+  ctx.beginPath(); ctx.arc(eu.x, eu.y, 34, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = css("--terra"); ctx.stroke();
+  ctx.beginPath(); ctx.arc(eu.x, eu.y, 42, 0, Math.PI * 2); ctx.globalAlpha = 0.35; ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.textAlign = "center"; ctx.fillStyle = fg; ctx.font = `italic 500 17px ${css("--serif")}`; ctx.fillText("você", eu.x, eu.y - 3);
+  ctx.font = `400 10.5px ${css("--display")}`; ctx.fillStyle = muted; const nm = L().nome; ctx.fillText(nm.length > 13 ? nm.slice(0, 12) + "…" : nm, eu.x, eu.y + 13);
+  if (k < 1) requestAnimationFrame(desenharTela);
+}
+function noEm(x, y) {
+  let melhor = null, dist = 14;
+  for (const n of G.nos) { if (n.tipo === "eu") continue; const d = Math.hypot(n.x - x, n.y - y) - n.r; if (d < dist) { dist = d; melhor = n; } }
+  return melhor;
+}
+tela.addEventListener("pointermove", e => {
+  const r = tela.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, n = noEm(x, y);
+  if (n !== hover) { hover = n; desenharTela(); }
+  const dica = $("dica");
+  if (!n) { dica.hidden = true; tela.style.cursor = "default"; return; }
+  tela.style.cursor = "pointer";
+  dica.innerHTML = n.tipo === "cat" ? `<strong>${esc(n.id)}</strong><br>${Object.keys(PROD).filter(p => PROD[p][1] === n.id).reduce((s, p) => s + (contagem[p] || 0), 0)} documentos no acervo · clique para filtrar`
+    : n.tipo === "prod" ? `<strong>${esc(PROD[n.id][0])}</strong><br>${contagem[n.id] || 0} documentos no acervo · clique para filtrar`
+    : `<strong>${NOME_TIPO[n.it.d.tipo]} · ${esc(n.it.d.a)}</strong><br>${esc(n.it.d.t)}`;
+  dica.hidden = false;
+  const mapa = tela.parentElement.getBoundingClientRect();
+  const left = Math.min(e.clientX - mapa.left + 14, mapa.width - 270), top = e.clientY - mapa.top + 14;
+  dica.style.left = Math.max(8, left) + "px"; dica.style.top = top + "px";
+});
+tela.addEventListener("pointerleave", () => { hover = null; $("dica").hidden = true; desenharTela(); });
+tela.addEventListener("click", e => {
+  const r = tela.getBoundingClientRect(), n = noEm(e.clientX - r.left, e.clientY - r.top);
+  if (!n) { if (filtro) { filtro = null; desenharKit(); desenharTela(); } return; }
+  if (n.tipo === "doc") {
+    foco = n.it.d.c; aba = n.it.d.tipo; filtro = null; desenharKit(); desenharTela();
+    const el = $("it-" + n.it.d.i); if (el) el.scrollIntoView({ block: "nearest", behavior: reduzir ? "auto" : "smooth" });
+    return;
+  }
+  const novo = n.tipo === "cat" ? { k: "cat", v: n.id } : { k: "prod", v: n.id };
+  filtro = filtro && filtro.k === novo.k && filtro.v === novo.v ? null : novo;
+  if (filtro) registrar("filtro", { k: filtro.k, filtro: filtro.v });
+  if (aba === "SALVOS") aba = "PUB";
+  for (const x of $("legenda").children) x.classList.toggle("ativa", !!filtro && filtro.k === "cat" && filtro.v === x.dataset.c);
+  desenharKit(); desenharTela();
+});
+
+/* legenda */
+$("legenda").innerHTML = CATS.map(c => `<span data-c="${esc(c)}" role="button" tabindex="0"><i style="background:${CORES[c]}"></i>${esc(c)}</span>`).join("");
+$("legenda").onclick = e => { const s = e.target.closest("span"); if (!s) return; const c = s.dataset.c;
+  filtro = filtro && filtro.k === "cat" && filtro.v === c ? null : { k: "cat", v: c };
+  if (filtro) registrar("filtro", { k: "cat", filtro: c }); if (aba === "SALVOS") aba = "PUB";
+  for (const x of $("legenda").children) x.classList.toggle("ativa", filtro && filtro.v === x.dataset.c);
+  desenharKit(); desenharTela(); };
+$("legenda").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.target.click(); } });
+
+new ResizeObserver(() => layout()).observe(tela);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => desenharTela());
+new MutationObserver(() => desenharTela()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+/* ---------- relevo do topo (o mesmo desenho do iAgro) ---------- */
+(function relevo() {
+  let d = "";
+  for (let k = 0; k < 16; k++) {
+    const y0 = 40 + k * 36, a = 18 + (k % 5) * 6;
+    d += `<path d="M -20 ${y0} ` + Array.from({ length: 13 }, (_, i) => {
+      const x = i * 100, y = y0 + Math.sin(i * 0.9 + k * 0.55) * a + Math.cos(i * 0.37 + k) * a * 0.6;
+      return `S ${x - 50} ${y} ${x} ${y}`;
+    }).join(" ") + `" fill="none" stroke="#cfe8b0" stroke-width="${k % 4 ? 0.8 : 1.6}"/>`;
+  }
+  $("relevo").innerHTML = d;
+})();
+
+if (registroAtivo()) $("avisoRegistro").hidden = false;
+$("semRegistro").onclick = () => { semRegistro = true; try { localStorage.setItem("redeiagro-sem-registro", "1"); } catch (e) {}
+  $("avisoRegistro").textContent = "Pronto: o seu uso não será registrado neste navegador."; };
+carregarLente();
+};
+</script>
+<script>
+/* Dados: os mesmos arquivos da busca do iAgro (site/dados/), atualizados a cada exportação do Redape. */
+const corta = (s, n) => { s = (s || "").trim(); return s.length <= n ? s : s.slice(0, n).replace(/\s+\S*$/, "") + "…"; };
+Promise.all([fetch("../dados/documentos.json").then(r => r.json()), fetch("../dados/resumo.json").then(r => r.json())])
+  .then(([docs, resumo]) => {
+    const prod = {};
+    for (const [id, p] of Object.entries(resumo.produtos || {})) prod[id] = [p.nome, p.cat];
+    const DATA = { prod, docs: docs.map(x => [x.c, corta(x.t, 180), corta(x.r, 230), x.a, corta(x.d, 60), corta(x.k, 140), x.l, x.pp || [], x.uf || [], x.bi || []]) };
+    document.getElementById("fonte").textContent = `os ${resumo.n.toLocaleString("pt-BR")} documentos da ${resumo.unidade} no Redape (${resumo.exportacao}: ${resumo.publicacoes.toLocaleString("pt-BR")} publicações, ${resumo.projetos} projetos, ${resumo.solucoes} soluções tecnológicas)`;
+    window.iniciar(DATA);
+  })
+  .catch(() => { document.getElementById("tKit").textContent = "Não foi possível carregar os dados. Recarregue a página."; });
+</script>
+</body>
+</html>
