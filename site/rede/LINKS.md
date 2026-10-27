@@ -33,4 +33,4 @@ tema mais próximos nessa lista e montar o endereço.
 ## Registro
 
 Quem chega por um desses endereços gera um evento anônimo `link` (produto, tema e o domínio da página de
-origem), como os demais eventos da Rede iAgro (ver `registro/LEIAME.md`).
+origem), como os demais eventos da Rede iAgro (ver `rede/registro/LEIAME.md` na raiz do repositório).
