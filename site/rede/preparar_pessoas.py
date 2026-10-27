@@ -10,7 +10,10 @@ vínculos A/B/M, ao menos 3 documentos, 1 dos últimos 10 anos). Só nome e unid
   site/dados/pessoas.json  {"p": {id: [nome, unidade, n_docs, ano_ultimo, da_territorial]},
                             "pp": {produto: [[id, n_docs, n_recentes, n_projetos_lider, n_tecnologias, peso, [doc_uid]]]},
                             "ev": {doc_uid: [tipo, titulo, ano, url]},
-                            "t": {id: [tema]}}  (temas da pessoa, do maior peso para o menor, se houver pessoa_tema.csv.gz)
+                            "t": {id: [tema]},  (temas da pessoa, do maior peso para o menor, se houver pessoa_tema.csv.gz)
+                            "u": {produto: [[unidade_id, unidade, n_docs, n_recentes, n_projetos, n_tecnologias]]},
+                            "ut": {"produto|tema": [mesmo formato]}}  (unidades que mais trabalham com o produto e com
+                            cada par produto × tema, se houver unidade_produto.csv.gz e unidade_produto_tema.csv.gz)
 Rodar:  python site/rede/preparar_pessoas.py
 """
 import json
@@ -26,6 +29,7 @@ DA_UNIDADE = 3
 UNIDADE = "territorial"
 N_EVIDENCIAS = 3
 TEMAS_POR_PESSOA = 10
+UNIDADES_POR_PRODUTO = 8
 
 if not (ENR / "pessoa_produto.csv.gz").exists():
     raise SystemExit("enriquecimento/ sem pessoa_produto.csv.gz: baixe uma release de enriquecimento com pessoas")
@@ -61,6 +65,20 @@ if (ENR / "pessoa_tema.csv.gz").exists():
     pt = pd.read_csv(ENR / "pessoa_tema.csv.gz", usecols=["pessoa", "tema_id", "peso"], dtype={"pessoa": str, "tema_id": str})
     pt = pt[pt.pessoa.isin(saida["p"])].sort_values(["pessoa", "peso"], ascending=[True, False])
     saida["t"] = pt.groupby("pessoa").tema_id.apply(lambda s: list(s.head(TEMAS_POR_PESSOA))).to_dict()
+
+# unidades vêm antes das pessoas na página: são a porta de entrada institucional
+def unidades(arq, chave, top):
+    if not (ENR / arq).exists():
+        return {}
+    u = pd.read_csv(ENR / arq, dtype={"unidade_id": str, "unidade": str, "produto_id": str, "tema_id": str})
+    u = u[u.produto_id.isin(produtos)].sort_values("n_docs", ascending=False)
+    u["k"] = u[chave].astype(str).agg("|".join, axis=1)
+    return {k: [[r.unidade_id, r.unidade, int(r.n_docs), int(r.n_recentes), int(r.n_projetos), int(r.n_tecnologias)]
+                for r in g.head(top).itertuples()] for k, g in u.groupby("k", sort=False)}
+
+
+saida["u"] = unidades("unidade_produto.csv.gz", ["produto_id"], UNIDADES_POR_PRODUTO)
+saida["ut"] = unidades("unidade_produto_tema.csv.gz", ["produto_id", "tema_id"], UNIDADES_POR_PRODUTO)
 
 (DADOS / "pessoas.json").write_text(json.dumps(saida, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print(f"pessoas.json: {len(saida['p'])} pessoas em {len(saida['pp'])} produtos, {len(saida['ev'])} evidências, "
