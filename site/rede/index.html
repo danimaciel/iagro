@@ -76,6 +76,9 @@ h1 em { font-family: var(--serif); font-weight: 400; font-style: italic; letter-
 .btn-voz:hover { border-color: var(--accent) }
 .btn-voz .mic { width: 10px; height: 14px; border-radius: 5px; border: 2px solid currentColor; position: relative }
 .btn-voz .mic::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 2px; height: 4px; background: currentColor; transform: translateX(-50%) }
+.btn-voz .som { width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 9px solid currentColor; position: relative; margin-right: 4px }
+.btn-voz .som::after { content: ""; position: absolute; left: 2px; top: -7px; width: 8px; height: 14px; border: 2px solid currentColor; border-left: 0; border-radius: 0 8px 8px 0 }
+#ouvir { justify-self: start }
 .btn-voz[aria-pressed="true"] { background: var(--terra); border-color: var(--terra); color: #fff }
 .btn-voz[aria-pressed="true"] .mic { animation: pulsar 1s ease-in-out infinite }
 @keyframes pulsar { 50% { opacity: .35 } }
@@ -262,6 +265,7 @@ footer p { margin: 0 }
           <h2 id="tKit">Seu kit inicial</h2>
           <span class="eyebrow" id="kitTotal"></span>
         </div>
+        <button type="button" class="btn-voz" id="ouvir" aria-pressed="false" hidden><span class="som" aria-hidden="true"></span><span id="ouvirRot">Ouvir os primeiros resultados</span></button>
         <div class="abas" role="tablist" id="abas"></div>
         <div class="filtro" id="filtro" hidden></div>
       </div>
@@ -440,6 +444,27 @@ function perfilDoTexto() {
   marcar();
 }
 let esperaTexto = null, prodsAntes = "";
+/* ouvir: lê em voz alta (voz do próprio aparelho) o que o kit mostra agora: filtro e os cinco primeiros itens */
+if (window.speechSynthesis) {
+  $("ouvir").hidden = false;
+  const fala = window.speechSynthesis;
+  const estadoOuvir = on => { $("ouvir").setAttribute("aria-pressed", on); $("ouvirRot").textContent = on ? "Parar de ouvir" : "Ouvir os primeiros resultados"; };
+  $("ouvir").onclick = () => {
+    if (fala.speaking) { fala.cancel(); estadoOuvir(false); return; }
+    const itens = visiveis.slice(0, 5);
+    const nomeAba = { PUB: "publicações", PRJ: "projetos", TEC: "tecnologias", SALVOS: "itens salvos" }[aba];
+    const partes = [itens.length ? `${itens.length === 1 ? "Um resultado" : `Os ${itens.length} primeiros resultados`} em ${nomeAba}` : `Nenhum resultado em ${nomeAba}.`];
+    if (filtro && filtro.k === "rede") partes.push(`sobre ${filtro.t ? temaNome(filtro.t) + ", em " : ""}${PROD[filtro.p][0]}.`);
+    itens.forEach((r, j) => partes.push(`${j + 1}. ${r.d.t.replace(/\.$/, "")}${r.d.a ? `, de ${r.d.a}` : ""}.`));
+    const u = new SpeechSynthesisUtterance(partes.join(" "));
+    u.lang = "pt-BR"; u.rate = 0.95;
+    const voz = fala.getVoices().find(v => v.lang && v.lang.replace("_", "-").toLowerCase() === "pt-br");
+    if (voz) u.voice = voz;
+    u.onend = u.onerror = () => estadoOuvir(false);
+    fala.cancel(); fala.speak(u); estadoOuvir(true);
+    registrar("ouvir", { aba, filtro: filtroTexto() });
+  };
+}
 /* voz: quem não escreve pode falar; o reconhecimento é o do próprio navegador (Web Speech API), sem servidor do projeto */
 const Reconhecer = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Reconhecer) {
