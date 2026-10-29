@@ -385,15 +385,65 @@ function marcar() {
   for (const b of $("biomas").children) b.setAttribute("aria-pressed", L().bioma === b.dataset.v);
 }
 function carregarLente() {
-  $("texto").value = L().texto; $("uf").value = L().uf || ""; marcar(); desenharLentes(); atualizar();
+  $("texto").value = L().texto; $("uf").value = L().uf || ""; marcar(); desenharLentes(); prodsAntes = produtosNoTexto(L().texto).join(" "); atualizar();
 }
 function desenharLentes() {
   $("lentes").innerHTML = Object.entries(S.lentes).map(([id, l]) => `<button type="button" class="chip" data-id="${esc(id)}" aria-pressed="${id === S.ativa}">${esc(l.nome)}${EXEMPLOS[id] ? '<span class="ex">exemplo</span>' : ""}</button>`).join("");
 }
 $("lentes").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.ativa = b.dataset.id; filtro = null; focoProd = null; hist = []; visaoGeral = false; linkProds = []; guardar(); carregarLente(); };
-$("texto").addEventListener("input", () => { L().texto = $("texto").value; detectar(); });
+/* o texto também diz quem a pessoa é e onde está: preenche ator, estado e bioma quando os cita */
+const TEXTO_ATOR = [
+  ["Produtor", /(produtor|agricultor|pecuarist|fazendeir|sitiant|criador|cafeicultor|horticultor|fruticultor|avicultor|suinocultor|apicultor|piscicultor|minha fazenda|minha propriedade|meu sitio)/],
+  ["Técnico ou extensionista", /(tecnic[oa] |extensionist|assistencia tecnica|ater[^a-z]|agronom[oa]|consultor)/],
+  ["Pesquisador", /(pesquisador|cientista|professor|docente)/],
+  ["Estudante", /(estudante|alun[oa]|mestrad|doutorad|dissertacao|tese[^a-z]|graduacao|tcc[^a-z])/],
+  ["Gestão pública", /(prefeitura|secretari[oa] |gestor[a]? public|governo|politica publica|servidor[a]? public)/],
+  ["Empresa ou cooperativa", /(cooperativa|empresa|startup|agroindustria|revenda)/]
+];
+const TEXTO_UF = {
+  AC: "acre|acreano", AL: "alagoas|alagoan", AM: "amazonas|amazonense", AP: "amapa|amapaense", BA: "bahia|baian",
+  CE: "ceara|cearense", DF: "distrito federal|brasilia", ES: "espirito santo|capixaba", GO: "goias|goian", MA: "maranhao|maranhense",
+  MG: "minas gerais|sul de minas|norte de minas|zona da mata mineira|triangulo mineiro|mineir[oa]", MS: "mato grosso do sul|sul-mato-grossense",
+  MT: "mato grosso(?! do sul)|mato-grossense", PA: "(do|no|ao|o) para|paraense", PB: "paraiba|paraiban", PE: "pernambuc",
+  PI: "piaui|piauiense", PR: "parana(?!iba)|paranaense", RJ: "rio de janeiro|fluminense", RN: "rio grande do norte|potiguar",
+  RO: "rondonia|rondoniense", RR: "roraima|roraimense", RS: "rio grande do sul|gauch[oa]", SC: "santa catarina|catarinense",
+  SE: "sergipe|sergipan", SP: "sao paulo|paulista", TO: "tocantins|tocantinense"
+};
+const TEXTO_BIOMA = [["Amazônia", "amazoni[ac]"], ["Cerrado", "cerrado"], ["Caatinga", "caatinga|semiarido"], ["Mata Atlântica", "mata atlantica"], ["Pampa", "pampa"], ["Pantanal", "pantanal"]];
+// estados com um bioma só (IBGE); nos demais o bioma fica para a pessoa escolher
+const BIOMA_DA_UF = { AC: "Amazônia", AM: "Amazônia", AP: "Amazônia", RR: "Amazônia", DF: "Cerrado", ES: "Mata Atlântica", RJ: "Mata Atlântica", SC: "Mata Atlântica" };
+function primeiro(t, pares) {
+  let melhor = null, pos = Infinity;
+  for (const [v, re] of pares) { const m = t.match(new RegExp("(^|[^a-z])(" + (re.source || re) + ")")); if (m && m.index < pos) { pos = m.index; melhor = v; } }
+  return melhor;
+}
+function perfilDoTexto() {
+  const t = " " + norm($("texto").value) + " ", l = L();
+  const ator = primeiro(t, TEXTO_ATOR), uf = primeiro(t, Object.entries(TEXTO_UF)), bioma = primeiro(t, TEXTO_BIOMA);
+  if (ator) l.ator = ator;
+  if (uf) { l.uf = uf; $("uf").value = uf; }
+  if (bioma) l.bioma = bioma; else if (uf) l.bioma = BIOMA_DA_UF[uf] || "";
+  marcar();
+}
+let esperaTexto = null, prodsAntes = "";
+// ao escrever: produtos na hora; perfil, kit e mapa quando a pessoa para de digitar
+$("texto").addEventListener("input", () => {
+  L().texto = $("texto").value; detectar();
+  clearTimeout(esperaTexto); esperaTexto = setTimeout(() => aplicarTexto(false), 900);
+});
+// com outros produtos no texto, a constelação volta para o produto do perfil (e o tema que o texto citar)
+function aplicarTexto(sempre) {
+  clearTimeout(esperaTexto); perfilDoTexto();
+  const agora = produtosNoTexto($("texto").value).join(" ");
+  if (sempre || agora !== prodsAntes) {
+    filtro = null; focoProd = null; hist = []; visaoGeral = false; linkProds = [];
+    atualizar();
+    if (REDE && focoProd) { const t = temaDoTexto(focoProd, $("texto").value); if (t) { filtro = { k: "rede", p: focoProd, t }; desenharKit(); desenharTela(); } }
+  } else atualizar();
+  prodsAntes = agora;
+}
 $("uf").onchange = () => { L().uf = $("uf").value; atualizar(); };
-$("form").onsubmit = e => { e.preventDefault(); L().texto = $("texto").value; atualizar();
+$("form").onsubmit = e => { e.preventDefault(); L().texto = $("texto").value; aplicarTexto(true);
   const l = L(); registrar("perfil", { ator: l.ator, bioma: l.bioma, uf: l.uf, cadeias: perfilProd.filter(p => !(l.off || []).includes(p)).join(" "), texto: limparPessoal(l.texto) }); };
 $("guardarLente").onclick = () => {
   const nome = $("nomeLente").value.trim();
