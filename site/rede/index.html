@@ -71,7 +71,9 @@ h1 em { font-family: var(--serif); font-weight: 400; font-style: italic; letter-
 .campo { display: grid; gap: 6px }
 .campo > label, .campo > .rotulo { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
 .voz { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px }
-.voz .nota { font-size: 11.5px }
+.voz .nota { font-size: 11.5px; flex-basis: 100% }
+.btn-limpar { border: 1px solid var(--line); background: none; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--muted) }
+.btn-limpar:hover { color: var(--fg); border-color: var(--fg) }
 .btn-voz { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 14px }
 .btn-voz:hover { border-color: var(--accent) }
 .btn-voz .mic { width: 10px; height: 14px; border-radius: 5px; border: 2px solid currentColor; position: relative }
@@ -210,10 +212,11 @@ footer p { margin: 0 }
       <h2>Seu perfil</h2>
       <div class="campo">
         <label for="texto">Quem é você e o que procura?</label>
-        <textarea id="texto"></textarea>
-        <div class="voz" id="voz" hidden>
-          <button type="button" class="btn-voz" id="falar" aria-pressed="false"><span class="mic" aria-hidden="true"></span><span id="falarRot">Falar em vez de escrever</span></button>
-          <span class="nota" id="vozNota">O navegador envia o áudio ao serviço de voz dele (Google ou Apple) para virar texto.</span>
+        <textarea id="texto" placeholder="Ex.: Sou produtor de arroz no Rio Grande do Sul e quero saber como controlar plantas daninhas."></textarea>
+        <div class="voz">
+          <button type="button" class="btn-voz" id="falar" hidden aria-pressed="false"><span class="mic" aria-hidden="true"></span><span id="falarRot">Falar em vez de escrever</span></button>
+          <button type="button" class="btn-limpar" id="limparPerfil">× Limpar</button>
+          <span class="nota" id="vozNota" hidden>O navegador envia o áudio ao serviço de voz dele (Google ou Apple) para virar texto.</span>
         </div>
       </div>
       <div class="campo">
@@ -444,6 +447,12 @@ function perfilDoTexto() {
   marcar();
 }
 let esperaTexto = null, prodsAntes = "";
+/* limpar: campo vazio e perfil do zero (produtos escolhidos, ator, estado e bioma) */
+function limparPerfil() {
+  const l = L(); l.texto = ""; l.escolhidos = []; l.off = []; l.ator = ""; l.uf = ""; l.bioma = "";
+  $("texto").value = ""; $("uf").value = ""; marcar(); aplicarTexto(true);
+}
+$("limparPerfil").onclick = () => { limparPerfil(); $("texto").focus(); registrar("limpar", {}); };
 /* ouvir: lê em voz alta (voz do próprio aparelho) o que o kit mostra agora: filtro e os cinco primeiros itens */
 if (window.speechSynthesis) {
   $("ouvir").hidden = false;
@@ -468,14 +477,15 @@ if (window.speechSynthesis) {
 /* voz: quem não escreve pode falar; o reconhecimento é o do próprio navegador (Web Speech API), sem servidor do projeto */
 const Reconhecer = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Reconhecer) {
-  $("voz").hidden = false;
+  $("falar").hidden = false; $("vozNota").hidden = false;
   let rec = null, base = "";
   const parar = () => { if (rec) rec.stop(); };
   const estado = on => { $("falar").setAttribute("aria-pressed", on); $("falarRot").textContent = on ? "Ouvindo… toque para parar" : "Falar em vez de escrever"; };
   $("falar").onclick = () => {
     if (rec) { parar(); return; }
     rec = new Reconhecer(); rec.lang = "pt-BR"; rec.interimResults = true; rec.continuous = true;
-    base = $("texto").value.trim();
+    // falar começa um perfil novo: a fala substitui o texto e o que veio dele
+    limparPerfil(); base = "";
     rec.onresult = e => {
       let fala = ""; for (let i = 0; i < e.results.length; i++) fala += e.results[i][0].transcript;
       $("texto").value = (base ? base + " " : "") + fala.trim();
