@@ -487,7 +487,14 @@ if (Reconhecer) {
     // falar começa um perfil novo: a fala substitui o texto e o que veio dele
     limparPerfil(); base = "";
     rec.onresult = e => {
-      let fala = ""; for (let i = 0; i < e.results.length; i++) fala += e.results[i][0].transcript;
+      // no Chrome do Android cada resultado repete a frase inteira até ali ("sou", "sou produtora"...);
+      // no computador, cada resultado é um trecho novo. Quem começa pelo que já foi ouvido substitui; os demais somam
+      let fala = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript.trim(); if (!t) continue;
+        if (norm(t).startsWith(norm(fala))) fala = t;
+        else if (!norm(fala).endsWith(norm(t))) fala += " " + t;
+      }
       $("texto").value = (base ? base + " " : "") + fala.trim();
       $("texto").dispatchEvent(new Event("input"));
     };
